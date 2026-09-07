@@ -85,28 +85,42 @@ class SoundSynthesizer {
     }
   }
 
-  public playCorrect() {
+  public playCorrect(triggerConfetti: boolean = true) {
+    if (triggerConfetti) {
+      import('../utils/confetti').then(({ fireCorrectConfetti }) => {
+        fireCorrectConfetti();
+      }).catch(() => {});
+    }
+
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-    notes.forEach((freq, i) => {
+    // Sparkling 5-note celebratory major chord arpeggio
+    const chord = [
+      { freq: 523.25, offset: 0.00, dur: 0.40, vol: 0.20 }, // C5
+      { freq: 659.25, offset: 0.07, dur: 0.45, vol: 0.22 }, // E5
+      { freq: 783.99, offset: 0.14, dur: 0.50, vol: 0.24 }, // G5
+      { freq: 1046.50, offset: 0.21, dur: 0.60, vol: 0.26 }, // C6
+      { freq: 1318.51, offset: 0.28, dur: 0.70, vol: 0.22 }, // E6 sparkle
+    ];
+
+    chord.forEach(({ freq, offset, dur, vol }) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      const time = this.ctx.currentTime + i * 0.08;
+      const time = this.ctx.currentTime + offset;
       osc.frequency.setValueAtTime(freq, time);
 
-      gain.gain.setValueAtTime(0.18, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+      gain.gain.setValueAtTime(vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(time);
-      osc.stop(time + 0.35);
+      osc.stop(time + dur);
     });
   }
 
@@ -115,23 +129,36 @@ class SoundSynthesizer {
     this.initCtx();
     if (!this.ctx) return;
 
-    const notes = [311.13, 293.66]; // Eb4, D4
-    notes.forEach((freq, i) => {
+    // Classic game "uh-oh / buzz" sound: 2 descending low buzz tones
+    const buzzTones = [
+      { freq: 220, start: 0.00, dur: 0.16 }, // A3
+      { freq: 164.81, start: 0.18, dur: 0.28 }, // E3 lower
+    ];
+
+    buzzTones.forEach(({ freq, start, dur }) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'sawtooth';
-      const time = this.ctx.currentTime + i * 0.12;
+
+      const time = this.ctx.currentTime + start;
       osc.frequency.setValueAtTime(freq, time);
+      osc.frequency.linearRampToValueAtTime(freq * 0.92, time + dur);
 
-      gain.gain.setValueAtTime(0.1, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.25);
+      gain.gain.setValueAtTime(0.18, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
 
-      osc.connect(gain);
+      // Low pass filter to make the buzz round, punchy and warm
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(850, time);
+
+      osc.connect(filter);
+      filter.connect(gain);
       gain.connect(this.ctx.destination);
 
       osc.start(time);
-      osc.stop(time + 0.25);
+      osc.stop(time + dur);
     });
   }
 

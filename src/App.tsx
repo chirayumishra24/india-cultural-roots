@@ -207,6 +207,7 @@ export const App: React.FC = () => {
     setSkillsLog((prev) => ({ ...prev, [skillArea]: prev[skillArea] + 1 }));
 
     if (isCorrect) {
+      soundFx.playCorrect();
       setActiveFlyToken(tokenType);
       activateTreeNode(categoryId);
 
@@ -220,6 +221,7 @@ export const App: React.FC = () => {
         switchTurn();
       }, 1400);
     } else {
+      soundFx.playIncorrect();
       // If quiz question and answered wrong -> Offer steal opportunity!
       if (selectedCategory === 'know_it') {
         setStealActive(true);
@@ -244,6 +246,8 @@ export const App: React.FC = () => {
         setTeamBScore((prev) => awardSteal(prev));
       }
       setSkillsLog((prev) => ({ ...prev, reasoning: prev.reasoning + 1 }));
+    } else {
+      soundFx.playIncorrect();
     }
 
     switchTurn();
@@ -252,6 +256,7 @@ export const App: React.FC = () => {
   // Final Mystery Answer Handler
   const handleFinalMysteryAnswer = (isCorrect: boolean) => {
     if (isCorrect) {
+      soundFx.playCorrect();
       if (activeTeam === 'teamA') {
         setTeamAScore((prev) => awardPointsAndToken(prev, 25, 'root'));
       } else {
@@ -261,7 +266,7 @@ export const App: React.FC = () => {
       setTreeNodes((prev) => prev.map((n) => ({ ...n, isDiscovered: true })));
       setPhase('living_culture');
     } else {
-      // Retry or conclude
+      soundFx.playIncorrect();
       setPhase('living_culture');
     }
   };

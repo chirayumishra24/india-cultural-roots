@@ -1,5 +1,5 @@
-import React from 'react';
-import { Volume2, VolumeX, Settings, Target, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Volume2, VolumeX, Settings, Target, Clock, Maximize, Minimize } from 'lucide-react';
 
 interface TopHeaderProps {
   currentRound: number;
@@ -22,6 +22,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onToggleSound,
   onOpenTeacherPanel,
 }) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
   const formattedTime = `00:${timeLeft.toString().padStart(2, '0')}`;
 
   return (
@@ -102,6 +120,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           aria-label="Teacher Controls"
         >
           <Settings className="w-5 h-5" />
+        </button>
+
+        {/* Fullscreen Toggle Button */}
+        <button
+          onClick={toggleFullscreen}
+          className="w-10 h-10 rounded-xl bg-[#2B7DE9] hover:bg-[#1E67C9] active:translate-y-0.5 text-white flex items-center justify-center shadow-[0_3px_0_#184F9B] transition-all"
+          title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          aria-label="Toggle Fullscreen"
+        >
+          {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
         </button>
       </div>
     </header>

@@ -18,7 +18,7 @@ export const CulturalRootsTree: React.FC<CulturalRootsTreeProps> = ({
   onNodeClick,
 }) => {
   return (
-    <div className="relative w-full max-w-xl h-96 md:h-[430px] flex items-center justify-center select-none">
+    <div className="relative w-full max-w-xl 2xl:max-w-2xl h-64 sm:h-80 md:h-[420px] 2xl:h-[500px] flex items-center justify-center select-none">
       {/* Background Aura Glow when Living Culture is achieved */}
       <div
         className={`absolute inset-0 rounded-full blur-3xl transition-opacity duration-1000 pointer-events-none ${

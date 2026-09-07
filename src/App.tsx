@@ -313,9 +313,9 @@ export const App: React.FC = () => {
       />
 
       {/* 3. MAIN GAMEPLAY BOARD */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-2 md:px-4 py-1 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
-        {/* Left Side: Team A Panel & Mascot */}
-        <div className="flex flex-col items-center gap-2 order-2 md:order-1">
+      <main className="relative z-10 flex-1 w-full max-w-7xl 2xl:max-w-[1700px] mx-auto px-2 sm:px-3 md:px-4 py-1 flex flex-col lg:flex-row items-center justify-between gap-2 md:gap-4 2xl:gap-8">
+        {/* Left Side: Team A Panel & Mascot (Desktop & Smart Class) */}
+        <div className="hidden lg:flex flex-col items-center gap-2 order-1 shrink-0">
           <TeamPanel
             teamId="teamA"
             teamName={teamNames.teamA}
@@ -328,49 +328,14 @@ export const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Center: Hero Cultural Roots Tree & Floating Heritage Cards */}
-        <div className="relative flex-1 flex items-center justify-center order-1 md:order-2 w-full">
-          {/* Symmetrically Arranged Heritage Discovery Cards */}
-          <div className="absolute inset-0 pointer-events-none flex justify-between items-center z-20 px-2 md:px-4">
-            {/* Left Cards Stack */}
-            <div className="flex flex-col gap-4 pointer-events-auto">
-              <HeritageDiscoveryCard
-                card={heritageCards[0]} // Manuscript
-                onClick={() => setInspectedCard(heritageCards[0])}
-              />
-              <HeritageDiscoveryCard
-                card={heritageCards[1]} // Music
-                onClick={() => setInspectedCard(heritageCards[1])}
-              />
-              <HeritageDiscoveryCard
-                card={heritageCards[2]} // Textile
-                onClick={() => setInspectedCard(heritageCards[2])}
-              />
-            </div>
-
-            {/* Right Cards Stack */}
-            <div className="flex flex-col gap-4 pointer-events-auto">
-              <HeritageDiscoveryCard
-                card={heritageCards[3]} // Architecture
-                onClick={() => setInspectedCard(heritageCards[3])}
-              />
-              <HeritageDiscoveryCard
-                card={heritageCards[4]} // Storytelling
-                onClick={() => setInspectedCard(heritageCards[4])}
-              />
-              <HeritageDiscoveryCard
-                card={heritageCards[5]} // Craft
-                onClick={() => setInspectedCard(heritageCards[5])}
-              />
-            </div>
-          </div>
-
+        {/* Center: Hero Cultural Roots Tree & Heritage Cards */}
+        <div className="relative flex-1 flex flex-col items-center justify-center order-1 lg:order-2 w-full">
           {/* Pan-Indian Perspectives Quick Trigger */}
-          <div className="absolute -top-3 right-1/2 translate-x-1/2 z-30 pointer-events-auto">
+          <div className="relative lg:absolute lg:-top-3 lg:right-1/2 lg:translate-x-1/2 z-30 mb-1 lg:mb-0 pointer-events-auto">
             <button
               type="button"
               onClick={() => setRegionalDrawerOpen(true)}
-              className="bg-white/95 hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-full px-3.5 py-1 text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 transition-all hover:scale-105"
+              className="bg-white/95 hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-full px-3.5 py-1 text-[11px] 2xl:text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 transition-all hover:scale-105"
               title="Compare cultural roots across Indian regions"
             >
               <span>🗺️</span>
@@ -378,27 +343,102 @@ export const App: React.FC = () => {
             </button>
           </div>
 
-          {/* Central Stylized Banyan Cultural Roots Tree */}
-          <CulturalRootsTree
-            nodes={treeNodes}
-            growthLevel={discoveredRootsCount}
-            isLivingCulture={phase === 'living_culture'}
-            highlightedCategory={
-              selectedCategory === 'know_it'
-                ? quizData.category
-                : selectedCategory === 'root_it'
-                ? rootItData.category
-                : null
-            }
-            onNodeClick={(node) => {
-              soundFx.playClick();
-              setSelectedExploreNode(node);
-            }}
-          />
+          <div className="relative w-full flex items-center justify-center">
+            {/* Symmetrically Arranged Heritage Discovery Cards (Desktop & Smart Class: >= lg) */}
+            <div className="hidden lg:flex absolute inset-0 pointer-events-none justify-between items-center z-20 px-2 md:px-4 2xl:px-8">
+              {/* Left Cards Stack */}
+              <div className="flex flex-col gap-3 2xl:gap-4 pointer-events-auto">
+                <HeritageDiscoveryCard
+                  card={heritageCards[0]} // Manuscript
+                  onClick={() => setInspectedCard(heritageCards[0])}
+                />
+                <HeritageDiscoveryCard
+                  card={heritageCards[1]} // Music
+                  onClick={() => setInspectedCard(heritageCards[1])}
+                />
+                <HeritageDiscoveryCard
+                  card={heritageCards[2]} // Textile
+                  onClick={() => setInspectedCard(heritageCards[2])}
+                />
+              </div>
+
+              {/* Right Cards Stack */}
+              <div className="flex flex-col gap-3 2xl:gap-4 pointer-events-auto">
+                <HeritageDiscoveryCard
+                  card={heritageCards[3]} // Architecture
+                  onClick={() => setInspectedCard(heritageCards[3])}
+                />
+                <HeritageDiscoveryCard
+                  card={heritageCards[4]} // Storytelling
+                  onClick={() => setInspectedCard(heritageCards[4])}
+                />
+                <HeritageDiscoveryCard
+                  card={heritageCards[5]} // Craft
+                  onClick={() => setInspectedCard(heritageCards[5])}
+                />
+              </div>
+            </div>
+
+            {/* Central Stylized Banyan Cultural Roots Tree */}
+            <CulturalRootsTree
+              nodes={treeNodes}
+              growthLevel={discoveredRootsCount}
+              isLivingCulture={phase === 'living_culture'}
+              highlightedCategory={
+                selectedCategory === 'know_it'
+                  ? quizData.category
+                  : selectedCategory === 'root_it'
+                  ? rootItData.category
+                  : null
+              }
+              onNodeClick={(node) => {
+                soundFx.playClick();
+                setSelectedExploreNode(node);
+              }}
+            />
+          </div>
+
+          {/* Mobile & Tablet Heritage Discovery Cards Shelf (< lg) */}
+          <div className="lg:hidden w-full max-w-md sm:max-w-xl mx-auto px-1 py-1 mt-1">
+            <div className="flex items-center justify-between mb-1 px-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-900">
+                Heritage Artifacts ({heritageCards.filter(c => c.isDiscovered).length}/6)
+              </span>
+              <span className="text-[9px] font-bold text-slate-500">Swipe to view</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none snap-x pb-1 pt-0.5 px-1">
+              {heritageCards.map((card) => (
+                <div key={card.id} className="snap-center shrink-0">
+                  <HeritageDiscoveryCard
+                    card={card}
+                    onClick={() => setInspectedCard(card)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile & Tablet Team Scoreboard Strip (< lg) */}
+          <div className="lg:hidden w-full max-w-lg mx-auto grid grid-cols-2 gap-2 px-1 mt-2 order-3">
+            <TeamPanel
+              teamId="teamA"
+              teamName={teamNames.teamA}
+              score={teamAScore}
+              isActiveTurn={activeTeam === 'teamA'}
+              onEditName={() => setTeacherPanelOpen(true)}
+            />
+            <TeamPanel
+              teamId="teamB"
+              teamName={teamNames.teamB}
+              score={teamBScore}
+              isActiveTurn={activeTeam === 'teamB'}
+              onEditName={() => setTeacherPanelOpen(true)}
+            />
+          </div>
         </div>
 
-        {/* Right Side: Team B Panel & Tree Progress */}
-        <div className="flex flex-col items-center gap-2 order-3">
+        {/* Right Side: Team B Panel & Tree Progress (Desktop & Smart Class: >= lg) */}
+        <div className="hidden lg:flex flex-col items-center gap-2 order-3 shrink-0">
           <TeamPanel
             teamId="teamB"
             teamName={teamNames.teamB}

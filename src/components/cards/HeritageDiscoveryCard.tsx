@@ -120,26 +120,26 @@ export const HeritageDiscoveryCard: React.FC<HeritageDiscoveryCardProps> = ({
   return (
     <button
       onClick={onClick}
-      className={`group relative bg-gradient-to-b from-white to-[#FDFBF7] border-2 border-[#E5DAC6] hover:border-amber-400 rounded-3xl p-2.5 shadow-[0_8px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_24px_rgba(245,176,65,0.25)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex flex-col items-center justify-center w-28 md:w-32 ${
+      className={`group relative bg-gradient-to-b from-white to-[#FDFBF7] border-2 border-[#E5DAC6] hover:border-amber-400 rounded-2xl md:rounded-3xl p-1.5 sm:p-2.5 2xl:p-3.5 shadow-[0_8px_16px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_24px_rgba(245,176,65,0.25)] transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 flex flex-col items-center justify-center w-24 sm:w-28 md:w-32 2xl:w-36 shrink-0 ${
         card.isDiscovered ? 'ring-2 ring-emerald-500/80 bg-emerald-50/30' : ''
       }`}
       title={`${card.title}: Click to inspect clue`}
     >
       {/* Discovery checkmark */}
       {card.isDiscovered && (
-        <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center shadow-md">
+        <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500 text-white text-[9px] sm:text-[10px] font-black flex items-center justify-center shadow-md">
           ✓
         </div>
       )}
 
       {/* Artifact Graphic Container */}
-      <div className="h-16 w-full flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+      <div className="h-12 sm:h-16 w-full flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden">
         {!imgError ? (
           <img
             src={`/assets/cards/${card.illustrationType}.jpg`}
             alt={card.title}
             onError={() => setImgError(true)}
-            className="h-14 w-auto object-contain drop-shadow-md rounded-lg"
+            className="h-11 sm:h-14 w-auto object-contain drop-shadow-md rounded-lg"
           />
         ) : (
           renderIllustration()
@@ -147,8 +147,8 @@ export const HeritageDiscoveryCard: React.FC<HeritageDiscoveryCardProps> = ({
       </div>
 
       {/* Card Title Ribbon */}
-      <div className="mt-1 bg-[#F5ECDC] group-hover:bg-amber-100 border border-[#D5C7B0] rounded-full px-3 py-0.5 shadow-sm">
-        <span className="text-xs font-black text-slate-800 tracking-tight">
+      <div className="mt-1 bg-[#F5ECDC] group-hover:bg-amber-100 border border-[#D5C7B0] rounded-full px-2 sm:px-3 py-0.5 shadow-sm">
+        <span className="text-[10px] sm:text-xs 2xl:text-sm font-black text-slate-800 tracking-tight whitespace-nowrap">
           {card.title}
         </span>
       </div>

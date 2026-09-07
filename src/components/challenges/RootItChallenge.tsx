@@ -44,17 +44,27 @@ export const RootItChallenge: React.FC<RootItChallengeProps> = ({
 
   const optionLetters = ['A', 'B', 'C', 'D'];
 
+  const [clueImgError, setClueImgError] = useState(false);
+
   const renderClueGraphic = () => (
     <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none">
-      {/* Stone Relief Carving Illustration */}
-      <svg viewBox="0 0 100 100" className="w-20 h-20 filter drop-shadow-md">
-        <rect x="10" y="10" width="80" height="80" rx="8" fill="#B38758" stroke="#875E38" strokeWidth="3" />
-        {/* Carved relief figure / decorative arch */}
-        <path d="M25 80 C25 40, 75 40, 75 80" fill="none" stroke="#664322" strokeWidth="5" />
-        <circle cx="50" cy="46" r="10" fill="#E5CCA8" stroke="#664322" strokeWidth="2.5" />
-        <path d="M38 75 C38 60, 62 60, 62 75 Z" fill="#D5B387" stroke="#664322" strokeWidth="2.5" />
-        <path d="M30 30 Q50 16 70 30" fill="none" stroke="#664322" strokeWidth="3" />
-      </svg>
+      {!clueImgError ? (
+        <img
+          src="/assets/clues/stone_relief.jpg"
+          alt={data.clueTitle}
+          onError={() => setClueImgError(true)}
+          className="w-20 h-20 object-cover rounded-xl border-2 border-[#875E38] shadow-md"
+        />
+      ) : (
+        /* Stone Relief Carving Illustration */
+        <svg viewBox="0 0 100 100" className="w-20 h-20 filter drop-shadow-md">
+          <rect x="10" y="10" width="80" height="80" rx="8" fill="#B38758" stroke="#875E38" strokeWidth="3" />
+          <path d="M25 80 C25 40, 75 40, 75 80" fill="none" stroke="#664322" strokeWidth="5" />
+          <circle cx="50" cy="46" r="10" fill="#E5CCA8" stroke="#664322" strokeWidth="2.5" />
+          <path d="M38 75 C38 60, 62 60, 62 75 Z" fill="#D5B387" stroke="#664322" strokeWidth="2.5" />
+          <path d="M30 30 Q50 16 70 30" fill="none" stroke="#664322" strokeWidth="3" />
+        </svg>
+      )}
       <span className="text-[11px] font-black text-[#5C3D1E] mt-1">
         {data.clueTitle}
       </span>

@@ -10,6 +10,8 @@ export const HeritageDiscoveryCard: React.FC<HeritageDiscoveryCardProps> = ({
   card,
   onClick,
 }) => {
+  const [imgError, setImgError] = React.useState(false);
+
   // Render high-fidelity SVG illustration matching the artifact
   const renderIllustration = () => {
     switch (card.illustrationType) {
@@ -131,8 +133,17 @@ export const HeritageDiscoveryCard: React.FC<HeritageDiscoveryCardProps> = ({
       )}
 
       {/* Artifact Graphic Container */}
-      <div className="h-16 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-        {renderIllustration()}
+      <div className="h-16 w-full flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+        {!imgError ? (
+          <img
+            src={`/assets/cards/${card.illustrationType}.jpg`}
+            alt={card.title}
+            onError={() => setImgError(true)}
+            className="h-14 w-auto object-contain drop-shadow-md rounded-lg"
+          />
+        ) : (
+          renderIllustration()
+        )}
       </div>
 
       {/* Card Title Ribbon */}

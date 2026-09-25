@@ -98,22 +98,18 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
   return (
     <div
-      className={`w-full h-full flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl border-2 transition-all relative overflow-hidden select-none shadow-md ${
-        isBlue
-          ? 'bg-gradient-to-b from-blue-50/90 via-white to-blue-50/70 border-blue-300'
-          : 'bg-gradient-to-b from-orange-50/90 via-white to-orange-50/70 border-orange-300'
+      className={`w-full h-full flex flex-col justify-between p-4 rounded-3xl transition-all relative overflow-hidden select-none ${
+        isBlue ? 'clay-panel-blue' : 'clay-panel-orange'
       }`}
     >
       {/* 1. Header: Team Identity, Discoveries Badge & Progress Bar */}
-      <div className="border-b pb-3 mb-3 border-slate-200">
+      <div className="border-b pb-3 mb-3 border-slate-200/80">
         <div className="flex items-center justify-between gap-2 mb-2">
           {/* Mascot Icon + Names */}
           <div className="flex items-center gap-2.5">
             <div
-              className={`w-10 h-10 rounded-xl p-0.5 flex items-center justify-center text-white shadow-sm shrink-0 ${
-                isBlue
-                  ? 'bg-gradient-to-br from-blue-600 to-indigo-700'
-                  : 'bg-gradient-to-br from-orange-500 to-amber-600'
+              className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white shrink-0 ${
+                isBlue ? 'clay-btn-blue' : 'clay-btn-orange'
               }`}
             >
               {isBlue ? <Compass className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
@@ -122,7 +118,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
             <div>
               <h2
                 className={`text-base font-black tracking-tight uppercase leading-none font-sans ${
-                  isBlue ? 'text-blue-800' : 'text-orange-800'
+                  isBlue ? 'text-blue-900' : 'text-orange-950'
                 }`}
               >
                 {team.name}
@@ -137,10 +133,8 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
           <div className="flex items-center gap-1.5">
             <button
               onClick={onOpenArchive}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-black shadow-xs transition-all ${
-                isBlue
-                  ? 'bg-blue-600 text-white hover:bg-blue-700'
-                  : 'bg-orange-500 text-white hover:bg-orange-600'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                isBlue ? 'clay-btn-blue text-white' : 'clay-btn-orange text-white'
               }`}
               title="Open Team's Knowledge Archive"
             >
@@ -152,12 +146,12 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
         {/* Progress Bar & Streak Indicator */}
         <div className="w-full flex items-center gap-2">
-          <div className="flex-1 h-2.5 bg-slate-200 rounded-full overflow-hidden p-0.5">
+          <div className="flex-1 h-3 bg-slate-200/80 rounded-full overflow-hidden p-0.5 clay-inset">
             <div
-              className={`h-full rounded-full transition-all duration-500 shadow-inner ${
+              className={`h-full rounded-full transition-all duration-500 ${
                 isBlue
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
-                  : 'bg-gradient-to-r from-orange-400 to-amber-500'
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-sm'
+                  : 'bg-gradient-to-r from-orange-400 to-amber-500 shadow-sm'
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -165,7 +159,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
           {/* Streak pill if streak >= 2 */}
           {team.streak >= 2 && (
-            <div className="flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 animate-pulse">
+            <div className="flex items-center gap-1 bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 animate-pulse clay-pill">
               <Flame className="w-3 h-3 text-amber-600" />
               <span>{team.streak} Streak</span>
             </div>
@@ -178,26 +172,26 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
         {/* Category Pill & Reward badge */}
         <div className="flex items-center justify-between mb-2">
           <span
-            className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg tracking-wider border shadow-2xs ${
+            className={`text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-wider border clay-pill ${
               isBlue
-                ? 'bg-blue-100 text-blue-800 border-blue-300'
-                : 'bg-orange-100 text-orange-800 border-orange-300'
+                ? 'bg-blue-100 text-blue-900 border-blue-200'
+                : 'bg-orange-100 text-orange-900 border-orange-200'
             }`}
           >
             {q?.category?.replace('-', ' ') || 'CULTURAL ROOTS'}
           </span>
 
-          <span className="flex items-center gap-1 text-[11px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-2xs">
-            <Sparkles className="w-3 h-3 text-emerald-700" />
+          <span className="flex items-center gap-1 text-[11px] font-black text-emerald-900 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full clay-pill">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
             <span>+1 DISCOVERY / 100 PTS</span>
           </span>
         </div>
 
         {/* Question Text Box with "Q" Circle */}
-        <div className="flex items-start gap-2.5 mb-3 bg-white/95 p-3 rounded-xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-start gap-3 mb-3 p-3.5 rounded-2xl border border-slate-200/90 clay-card">
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0 text-white ${
-              isBlue ? 'bg-blue-600' : 'bg-orange-500'
+            className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs shrink-0 text-white ${
+              isBlue ? 'clay-btn-blue' : 'clay-btn-orange'
             }`}
           >
             Q
@@ -208,7 +202,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
         </div>
 
         {/* Question Interactive Options based on Question Type */}
-        <div className="flex-1 flex flex-col justify-center space-y-2 mb-3">
+        <div className="flex-1 flex flex-col justify-center space-y-2.5 mb-3">
           {/* A. Standard MCQ & Scenario Options */}
           {(q?.type === 'mcq' || q?.type === 'scenario') &&
             q.options?.map((opt, idx) => {
@@ -237,21 +231,21 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                       onSubmitAnswer(idx);
                     }, 350);
                   }}
-                  className={`w-full text-left p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-3 shadow-xs ${
+                  className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-3 cursor-pointer ${
                     isSelected
                       ? isBlue
-                        ? 'bg-blue-500 text-white border-blue-600 shadow-md scale-[1.01]'
-                        : 'bg-orange-500 text-white border-orange-600 shadow-md scale-[1.01]'
-                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        ? 'clay-btn-blue text-white scale-[1.01]'
+                        : 'clay-btn-orange text-white scale-[1.01]'
+                      : 'clay-btn-white text-slate-700 hover:border-slate-300'
                   }`}
                 >
                   <span
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
                       isSelected
                         ? 'bg-white/30 text-white'
                         : isBlue
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-orange-100 text-orange-700'
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                        : 'bg-orange-100 text-orange-800 border border-orange-200'
                     }`}
                   >
                     {letter}
@@ -276,19 +270,19 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                         onSubmitAnswer(idx);
                       }, 350);
                     }}
-                    className={`w-full p-3 rounded-xl border-2 text-left transition-all flex items-center gap-3 shadow-xs ${
+                    className={`w-full p-3.5 rounded-2xl text-left transition-all flex items-center gap-3 cursor-pointer ${
                       isSelected
                         ? isBlue
-                          ? 'bg-blue-600 text-white border-blue-700 shadow-md'
-                          : 'bg-orange-500 text-white border-orange-600 shadow-md'
-                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          ? 'clay-btn-blue text-white'
+                          : 'clay-btn-orange text-white'
+                        : 'clay-btn-white text-slate-700'
                     }`}
                   >
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
                         isSelected
-                          ? 'bg-white text-slate-800'
-                          : 'bg-slate-100 text-slate-600'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       {idx === 0 ? '✓' : '✗'}
@@ -302,13 +296,13 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
           {/* C. Match the Pair */}
           {q?.type === 'match' && (
-            <div className="space-y-2 bg-white/80 p-2.5 rounded-xl border border-slate-200">
+            <div className="space-y-2 p-3 rounded-2xl border border-slate-200 clay-card">
               <span className="text-[11px] font-bold text-slate-500 block mb-1">
                 Tap a term on the left, then tap its matching meaning on the right:
               </span>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {/* Left column */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {q.pairs?.map((p) => {
                     const isMatched = !!matchSelection.matchedPairs[p.id];
                     const isSelected = matchSelection.selectedLeft === p.id;
@@ -316,14 +310,14 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                       <button
                         key={p.id}
                         onClick={() => handleLeftMatchClick(p.id)}
-                        className={`w-full text-left p-2 rounded-lg border font-bold transition-all ${
+                        className={`w-full text-left p-2.5 rounded-xl border font-bold transition-all cursor-pointer ${
                           isMatched
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            ? 'bg-emerald-50 text-emerald-900 border-emerald-300 clay-pill'
                             : isSelected
                             ? isBlue
-                              ? 'bg-blue-100 border-blue-500 text-blue-900 ring-2 ring-blue-300'
-                              : 'bg-orange-100 border-orange-500 text-orange-900 ring-2 ring-orange-300'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                              ? 'clay-btn-blue text-white ring-2 ring-blue-300'
+                              : 'clay-btn-orange text-white ring-2 ring-orange-300'
+                            : 'clay-btn-white text-slate-700'
                         }`}
                       >
                         {p.left} {isMatched && '✓'}
@@ -333,7 +327,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                 </div>
 
                 {/* Right column */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   {q.pairs?.map((p) => {
                     const isPairedWith = Object.values(matchSelection.matchedPairs).includes(
                       p.right
@@ -342,10 +336,10 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                       <button
                         key={p.id}
                         onClick={() => handleRightMatchClick(p.right)}
-                        className={`w-full text-left p-2 rounded-lg border font-medium transition-all ${
+                        className={`w-full text-left p-2.5 rounded-xl border font-medium transition-all cursor-pointer ${
                           isPairedWith
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 line-through opacity-80'
-                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                            ? 'bg-emerald-50 text-emerald-900 border-emerald-300 line-through opacity-80 clay-pill'
+                            : 'clay-btn-white text-slate-700'
                         }`}
                       >
                         {p.right}
@@ -434,7 +428,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
         </div>
 
         {/* 3. Power-Ups Row (50/50 and Root Hint) */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="grid grid-cols-2 gap-2.5 mb-3">
           {/* 50/50 Button */}
           <button
             onClick={onUseFiftyFifty}
@@ -443,19 +437,19 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
               team.eliminatedOptions.length > 0 ||
               q?.type !== 'mcq'
             }
-            className={`py-2 px-3 rounded-xl border flex items-center justify-between gap-1 transition-all shadow-xs ${
+            className={`py-2 px-3 rounded-2xl border flex items-center justify-between gap-1 transition-all ${
               team.fiftyFiftyRemaining > 0 &&
               team.eliminatedOptions.length === 0 &&
               q?.type === 'mcq'
-                ? 'bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-900 cursor-pointer active:scale-95'
-                : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                ? 'clay-btn-white hover:bg-amber-50/80 border-amber-300 text-amber-950 cursor-pointer active:scale-95'
+                : 'bg-slate-100/80 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
             }`}
           >
             <div className="flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
               <span className="text-xs font-black">50/50</span>
             </div>
-            <span className="text-[10px] font-bold bg-white/80 px-1.5 py-0.2 rounded border border-amber-200">
+            <span className="text-[10px] font-black bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300 clay-pill">
               {team.fiftyFiftyRemaining} LEFT
             </span>
           </button>
@@ -464,12 +458,12 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
           <button
             onClick={onUseRootHint}
             disabled={team.rootHintsRemaining <= 0}
-            className={`py-2 px-3 rounded-xl border flex items-center justify-between gap-1 transition-all shadow-xs ${
+            className={`py-2 px-3 rounded-2xl border flex items-center justify-between gap-1 transition-all ${
               team.rootHintsRemaining > 0
                 ? isBlue
-                  ? 'bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-900 cursor-pointer active:scale-95'
-                  : 'bg-orange-50 hover:bg-orange-100 border-orange-300 text-orange-900 cursor-pointer active:scale-95'
-                : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                  ? 'clay-btn-white hover:bg-blue-50/80 border-blue-300 text-blue-950 cursor-pointer active:scale-95'
+                  : 'clay-btn-white hover:bg-orange-50/80 border-orange-300 text-orange-950 cursor-pointer active:scale-95'
+                : 'bg-slate-100/80 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
             }`}
           >
             <div className="flex items-center gap-1.5">
@@ -478,7 +472,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
               />
               <span className="text-xs font-black">ROOT HINT</span>
             </div>
-            <span className="text-[10px] font-bold bg-white/80 px-1.5 py-0.2 rounded border border-slate-200">
+            <span className="text-[10px] font-black bg-slate-100 text-slate-800 px-2 py-0.5 rounded-full border border-slate-200 clay-pill">
               {team.rootHintsRemaining} LEFT
             </span>
           </button>
@@ -496,11 +490,11 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
             onSubmitAnswer(finalAns);
           }}
           disabled={!canSubmit}
-          className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
+          className={`w-full py-4 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-white transition-all flex items-center justify-center gap-2 cursor-pointer ${
             canSubmit
               ? isBlue
-                ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 active:scale-98 shadow-blue-500/30'
-                : 'bg-gradient-to-r from-orange-500 via-orange-600 to-amber-600 hover:from-orange-400 hover:to-amber-500 active:scale-98 shadow-orange-500/30'
+                ? 'clay-btn-blue'
+                : 'clay-btn-orange'
               : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-70 shadow-none'
           }`}
         >
@@ -511,33 +505,33 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
       {/* 5. Non-blocking Discovery Unlocked Floating Card Notification */}
       {team.isDiscovering && team.latestUnlockedDiscovery && (
-        <div className="absolute inset-0 bg-white/95 backdrop-blur-sm z-30 p-4 rounded-2xl flex flex-col items-center justify-between border-2 border-emerald-400 animate-fade-in shadow-xl select-none">
+        <div className="absolute inset-0 bg-white/95 backdrop-blur-md z-30 p-5 rounded-3xl flex flex-col items-center justify-between border-2 border-emerald-400 animate-fade-in clay-card select-none">
           <div className="w-full flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
+            <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1.5 clay-pill">
+              <Sparkles className="w-3.5 h-3.5" />
               DISCOVERY UNLOCKED
             </span>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-xs font-black text-slate-500">
               #{team.latestUnlockedDiscovery.id} / 20
             </span>
           </div>
 
           <div className="my-auto text-center px-2">
-            <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-800 border-2 border-amber-300 mx-auto flex items-center justify-center text-2xl shadow-md mb-2">
+            <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-900 border-2 border-amber-300 mx-auto flex items-center justify-center text-3xl mb-3 clay-pill">
               {team.latestUnlockedDiscovery.symbol || '📜'}
             </div>
-            <h3 className="text-base font-black text-slate-800 tracking-tight mb-1">
+            <h3 className="text-lg font-black text-slate-900 tracking-tight mb-1">
               {team.latestUnlockedDiscovery.title}
             </h3>
             <span className="text-[11px] font-black uppercase text-amber-700 tracking-wider block mb-2">
               {team.latestUnlockedDiscovery.zoneTitle}
             </span>
-            <p className="text-xs text-slate-600 leading-relaxed max-w-[280px] mx-auto bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+            <p className="text-xs text-slate-600 leading-relaxed max-w-[280px] mx-auto bg-slate-50 p-3 rounded-2xl border border-slate-200/80 clay-inset">
               {team.latestUnlockedDiscovery.shortExplanation}
             </p>
           </div>
 
-          <div className="w-full bg-emerald-50 border border-emerald-200 rounded-xl p-2 flex items-center justify-around text-xs font-black text-emerald-900">
+          <div className="w-full bg-emerald-50 border border-emerald-200 rounded-2xl p-2.5 flex items-center justify-around text-xs font-black text-emerald-950 clay-card">
             <span>+1 DISCOVERY</span>
             <span>•</span>
             <span>+100 KNOWLEDGE PTS</span>

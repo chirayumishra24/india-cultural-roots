@@ -15,11 +15,11 @@ export const DiscoveryProgressBottom: React.FC<DiscoveryProgressBottomProps> = (
   onZoneClick
 }) => {
   return (
-    <div className="w-full bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-sm px-4 py-2.5 flex items-center justify-between gap-4 select-none relative z-10">
+    <div className="w-full border border-slate-200/90 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-4 select-none relative z-10 clay-card">
       {/* Left Title & Explanation */}
       <div className="flex items-center gap-3 min-w-[240px] max-w-[280px]">
-        <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
-          <BookOpen className="w-5 h-5" />
+        <div className="w-10 h-10 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 clay-btn-white">
+          <BookOpen className="w-5 h-5 text-blue-600" />
         </div>
         <div>
           <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">
@@ -72,13 +72,13 @@ export const DiscoveryProgressBottom: React.FC<DiscoveryProgressBottomProps> = (
                 {(isKnowledgeHere || isHeritageHere) && (
                   <div className="absolute -top-3.5 flex items-center gap-1 z-10">
                     {isKnowledgeHere && (
-                      <span className="flex items-center gap-0.5 bg-blue-600 text-white text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-xs animate-bounce">
+                      <span className="flex items-center gap-0.5 bg-blue-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full shadow-xs animate-bounce clay-pill">
                         <MapPin className="w-2 h-2" />
                         Blue
                       </span>
                     )}
                     {isHeritageHere && (
-                      <span className="flex items-center gap-0.5 bg-orange-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-xs animate-bounce">
+                      <span className="flex items-center gap-0.5 bg-orange-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full shadow-xs animate-bounce clay-pill">
                         <MapPin className="w-2 h-2" />
                         Orange
                       </span>
@@ -88,7 +88,7 @@ export const DiscoveryProgressBottom: React.FC<DiscoveryProgressBottomProps> = (
 
                 {/* Circular Zone Avatar / Badge */}
                 <div
-                  className={`w-12 h-12 rounded-full border-2 p-0.5 transition-all duration-300 flex items-center justify-center relative shadow-sm group-hover:scale-105 ${
+                  className={`w-12 h-12 rounded-full border-2 p-0.5 transition-all duration-300 flex items-center justify-center relative clay-pill group-hover:scale-105 ${
                     isKnowledgeHere || isHeritageHere
                       ? 'ring-4 ring-amber-300 scale-105'
                       : ''
@@ -140,7 +140,7 @@ export const DiscoveryProgressBottom: React.FC<DiscoveryProgressBottomProps> = (
       </div>
 
       {/* Right: Power-ups Reminder Box */}
-      <div className="hidden lg:flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 rounded-xl px-3 py-1.5 shadow-xs shrink-0">
+      <div className="hidden lg:flex items-center gap-3 border border-amber-200/80 rounded-2xl px-3 py-1.5 shrink-0 clay-card">
         <div className="text-left">
           <div className="flex items-center gap-1 text-[10px] font-black text-amber-800 uppercase tracking-wider">
             <Sparkles className="w-3 h-3 text-amber-600" />
@@ -150,14 +150,14 @@ export const DiscoveryProgressBottom: React.FC<DiscoveryProgressBottomProps> = (
         </div>
 
         <div className="flex items-center gap-2 pl-2 border-l border-amber-200">
-          <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-amber-200 shadow-xs">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl border border-amber-200/80 clay-btn-white">
             <Zap className="w-3.5 h-3.5 text-amber-500" />
             <div className="text-[9px] leading-tight font-bold text-slate-700">
               <div>50/50</div>
               <div className="text-slate-400">1 per team</div>
             </div>
           </div>
-          <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-lg border border-amber-200 shadow-xs">
+          <div className="flex items-center gap-1 px-2 py-1 rounded-xl border border-amber-200/80 clay-btn-white">
             <Search className="w-3.5 h-3.5 text-blue-500" />
             <div className="text-[9px] leading-tight font-bold text-slate-700">
               <div>Root Hint</div>

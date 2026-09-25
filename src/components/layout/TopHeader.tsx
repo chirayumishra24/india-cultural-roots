@@ -59,7 +59,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const highestDiscovery = Math.max(teamADiscoveries, teamBDiscoveries);
 
   return (
-    <header className="w-full bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-sm px-4 py-2 flex items-center justify-between gap-4 select-none relative z-20">
+    <header className="w-full border border-slate-200/90 rounded-2xl px-4 py-2 flex items-center justify-between gap-4 select-none relative z-20 clay-card">
       {/* Left: Brand & NCERT Chapter Identity */}
       <div className="flex items-center gap-3 min-w-[280px]">
         {/* Ashoka Chakra & Sacred Emblem Motif */}
@@ -141,12 +141,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       {/* Right: View Toggles, Controls & Heritage Scroll Quote */}
       <div className="flex items-center gap-2.5">
         {/* View Switcher: 3D vs Map */}
-        <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+        <div className="flex items-center p-1 rounded-xl border border-slate-200/80 clay-inset">
           <button
             onClick={() => onToggleViewMode('3d')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
               viewMode === '3d'
-                ? 'bg-white text-blue-600 shadow-sm'
+                ? 'clay-btn-white text-blue-700'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             title="3D Miniature World"
@@ -156,9 +156,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
           <button
             onClick={() => onToggleViewMode('map')}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-extrabold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
               viewMode === 'map'
-                ? 'bg-white text-blue-600 shadow-sm'
+                ? 'clay-btn-white text-blue-700'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
             title="2D Map Route"
@@ -171,7 +171,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Cultural Tree Button */}
         <button
           onClick={onOpenTreeModal}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition-all shadow-xs"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black text-emerald-900 bg-emerald-50 border border-emerald-300 transition-all clay-btn-white cursor-pointer"
           title="Open Cultural Heritage Tree View"
         >
           <GitFork className="w-4 h-4 text-emerald-600 rotate-180" />
@@ -181,7 +181,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Teacher Mode Button */}
         <button
           onClick={onOpenTeacherModal}
-          className="p-1.5 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all"
+          className="p-2 rounded-xl text-slate-700 clay-btn-white cursor-pointer"
           title="Teacher Dashboard / Manage Questions"
         >
           <GraduationCap className="w-4 h-4 text-slate-700" />
@@ -190,7 +190,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Help / How to Play */}
         <button
           onClick={onOpenHelpModal}
-          className="p-1.5 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all"
+          className="p-2 rounded-xl text-slate-700 clay-btn-white cursor-pointer"
           title="How to Play"
         >
           <HelpCircle className="w-4 h-4 text-slate-700" />
@@ -199,7 +199,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Sound Toggle */}
         <button
           onClick={onToggleSound}
-          className="p-1.5 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all"
+          className="p-2 rounded-xl text-slate-700 clay-btn-white cursor-pointer"
           title={isSoundMuted ? 'Unmute Sound' : 'Mute Sound'}
         >
           {isSoundMuted ? (
@@ -212,7 +212,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Fullscreen Toggle */}
         <button
           onClick={toggleFullscreen}
-          className="p-1.5 rounded-xl text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-all"
+          className="p-2 rounded-xl text-slate-700 clay-btn-white cursor-pointer"
           title="Toggle Fullscreen"
         >
           <Maximize2 className="w-4 h-4 text-slate-700" />

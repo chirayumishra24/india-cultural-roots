@@ -17,7 +17,7 @@ export const StartScreenModal: React.FC<StartScreenModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 select-none animate-fade-in">
+    <div className="fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 select-none animate-fade-in">
       <div className="bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-center relative overflow-hidden flex flex-col items-center">
         {/* Decorative Top Aura */}
         <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-blue-600 via-amber-500 to-orange-500" />

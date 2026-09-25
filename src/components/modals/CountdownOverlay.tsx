@@ -32,7 +32,7 @@ export const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete }
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 select-none animate-fade-in">
+    <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 select-none animate-fade-in">
       <div className="text-center text-white flex flex-col items-center">
         <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center mb-4">
           <Compass className="w-12 h-12 text-amber-400 animate-spin-slow" />

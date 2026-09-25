@@ -562,12 +562,13 @@ export const App: React.FC = () => {
         </section>
 
         {/* Center Arena: 3D Miniature Cultural Diorama / Map View - 40% */}
-        <section className="col-span-12 lg:col-span-4 xl:col-span-4 h-full min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white/70">
+        <section className="col-span-12 lg:col-span-4 xl:col-span-4 h-full min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white/70 isolate z-0">
           {viewMode === '3d' ? (
             <CulturalWorld3D
               teamADiscoveries={teamKnowledge.discoveries}
               teamBDiscoveries={teamHeritage.discoveries}
               activeHintZoneIndex={activeHintZone}
+              showBadges={gameStatus === 'playing'}
             />
           ) : (
             <MapRouteView

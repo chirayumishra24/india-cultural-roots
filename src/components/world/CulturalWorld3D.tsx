@@ -1,7 +1,9 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useContext, createContext } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Float, Html } from '@react-three/drei';
 import * as THREE from 'three';
+
+export const ShowBadgesContext = createContext<boolean>(true);
 
 // Waypoint positions along the winding discovery journey path (20 points for 20 discoveries)
 export const WAYPOINTS: [number, number, number][] = [
@@ -46,8 +48,17 @@ const ZoneBadge: React.FC<{
   accentColor: string;
   position: [number, number, number];
 }> = ({ number, title, color, accentColor, position }) => {
+  const showBadges = useContext(ShowBadgesContext);
+  if (!showBadges) return null;
+
   return (
-    <Html position={position} center distanceFactor={13} className="pointer-events-none select-none">
+    <Html
+      position={position}
+      center
+      distanceFactor={13}
+      zIndexRange={[10, 0]}
+      className="pointer-events-none select-none"
+    >
       <div
         className="flex items-center gap-1.5 px-3 py-1 rounded-full shadow-lg border backdrop-blur-md whitespace-nowrap transition-transform duration-300 hover:scale-105"
         style={{
@@ -1148,12 +1159,14 @@ interface CulturalWorld3DProps {
   teamADiscoveries: number;
   teamBDiscoveries: number;
   activeHintZoneIndex: number | null;
+  showBadges?: boolean;
 }
 
 export const CulturalWorld3D: React.FC<CulturalWorld3DProps> = ({
   teamADiscoveries,
   teamBDiscoveries,
-  activeHintZoneIndex
+  activeHintZoneIndex,
+  showBadges = true
 }) => {
   return (
     <div className="w-full h-full relative select-none rounded-2xl overflow-hidden shadow-inner bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50">
@@ -1162,66 +1175,68 @@ export const CulturalWorld3D: React.FC<CulturalWorld3DProps> = ({
         shadows
         className="w-full h-full cursor-grab active:cursor-grabbing"
       >
-        {/* Atmospheric Fog for Depth & Museum Diorama Feel */}
-        <fog attach="fog" args={['#E0F2FE', 16, 34]} />
+        <ShowBadgesContext.Provider value={showBadges}>
+          {/* Atmospheric Fog for Depth & Museum Diorama Feel */}
+          <fog attach="fog" args={['#E0F2FE', 16, 34]} />
 
-        {/* Ambient & Warm Direct Sunlight Lighting */}
-        <ambientLight intensity={0.95} />
-        <directionalLight
-          position={[12, 18, 9]}
-          intensity={1.7}
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-          shadow-camera-near={0.5}
-          shadow-camera-far={35}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
-        />
-        <directionalLight position={[-9, 12, -7]} intensity={0.5} color="#FFF8E1" />
-        <hemisphereLight args={['#BAE6FD', '#8D6E63', 0.4]} />
+          {/* Ambient & Warm Direct Sunlight Lighting */}
+          <ambientLight intensity={0.95} />
+          <directionalLight
+            position={[12, 18, 9]}
+            intensity={1.7}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-near={0.5}
+            shadow-camera-far={35}
+            shadow-camera-left={-10}
+            shadow-camera-right={10}
+            shadow-camera-top={10}
+            shadow-camera-bottom={-10}
+          />
+          <directionalLight position={[-9, 12, -7]} intensity={0.5} color="#FFF8E1" />
+          <hemisphereLight args={['#BAE6FD', '#8D6E63', 0.4]} />
 
-        {/* Orbit Controls with Natural Diorama Constraints */}
-        <OrbitControls
-          enablePan={false}
-          maxPolarAngle={Math.PI / 2.3}
-          minPolarAngle={Math.PI / 7}
-          minDistance={8}
-          maxDistance={18}
-          autoRotate={false}
-          target={[0, 0.6, 0.8]}
-        />
+          {/* Orbit Controls with Natural Diorama Constraints */}
+          <OrbitControls
+            enablePan={false}
+            maxPolarAngle={Math.PI / 2.3}
+            minPolarAngle={Math.PI / 7}
+            minDistance={8}
+            maxDistance={18}
+            autoRotate={false}
+            target={[0, 0.6, 0.8]}
+          />
 
-        {/* Rich Sculpted Diorama Base Environment */}
-        <DioramaBaseEnvironment />
+          {/* Rich Sculpted Diorama Base Environment */}
+          <DioramaBaseEnvironment />
 
-        {/* Winding 20-Discovery Journey Path */}
-        <DiscoveryPath3D
-          teamADiscovery={teamADiscoveries}
-          teamBDiscovery={teamBDiscoveries}
-        />
+          {/* Winding 20-Discovery Journey Path */}
+          <DiscoveryPath3D
+            teamADiscovery={teamADiscoveries}
+            teamBDiscovery={teamBDiscoveries}
+          />
 
-        {/* Six Distinct Cultural Heritage Landmarks */}
-        <VedicHermitage isHighlighted={activeHintZoneIndex === 1} />
-        <UpanishadPavilion isHighlighted={activeHintZoneIndex === 2} />
-        <BuddhistStupa isHighlighted={activeHintZoneIndex === 3} />
-        <JainPavilion isHighlighted={activeHintZoneIndex === 4} />
-        <FolkTribalHamlet isHighlighted={activeHintZoneIndex === 5} />
-        <SharedHeritagePlaza isHighlighted={activeHintZoneIndex === 6} />
+          {/* Six Distinct Cultural Heritage Landmarks */}
+          <VedicHermitage isHighlighted={activeHintZoneIndex === 1} />
+          <UpanishadPavilion isHighlighted={activeHintZoneIndex === 2} />
+          <BuddhistStupa isHighlighted={activeHintZoneIndex === 3} />
+          <JainPavilion isHighlighted={activeHintZoneIndex === 4} />
+          <FolkTribalHamlet isHighlighted={activeHintZoneIndex === 5} />
+          <SharedHeritagePlaza isHighlighted={activeHintZoneIndex === 6} />
 
-        {/* Dual Team Explorer Markers */}
-        <ExplorerMarker3D
-          discoveryIndex={teamADiscoveries}
-          team="blue"
-          label="Team Knowledge"
-        />
-        <ExplorerMarker3D
-          discoveryIndex={teamBDiscoveries}
-          team="orange"
-          label="Team Heritage"
-        />
+          {/* Dual Team Explorer Markers */}
+          <ExplorerMarker3D
+            discoveryIndex={teamADiscoveries}
+            team="blue"
+            label="Team Knowledge"
+          />
+          <ExplorerMarker3D
+            discoveryIndex={teamBDiscoveries}
+            team="orange"
+            label="Team Heritage"
+          />
+        </ShowBadgesContext.Provider>
       </Canvas>
 
       {/* Floating 3D Navigation Tip */}

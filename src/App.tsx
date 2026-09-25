@@ -204,7 +204,9 @@ export const App: React.FC = () => {
     }
     if (q.type === 'match') {
       if (!q.pairs || !answer) return false;
-      return q.pairs.every((pair) => answer[pair.id] === pair.right);
+      return q.pairs.every(
+        (pair) => answer[pair.id] === pair.right || answer[pair.left] === pair.right
+      );
     }
     if (q.type === 'sequence') {
       return true; // Guided sequence completion
@@ -217,12 +219,22 @@ export const App: React.FC = () => {
   };
 
   // Submit Answer for Team Knowledge
-  const handleSubmitAnswerA = () => {
+  const handleSubmitAnswerA = (directAnswer?: any) => {
     const q = teamKnowledge.currentQuestion;
-    if (!q || teamKnowledge.isSubmitting) return;
+    if (!q || teamKnowledge.isSubmitting || teamKnowledge.isDiscovering) return;
 
-    setTeamKnowledge((prev) => ({ ...prev, isSubmitting: true }));
-    const isCorrect = checkAnswerCorrectness(q, teamKnowledge.selectedAnswer);
+    const isEvent =
+      directAnswer &&
+      typeof directAnswer === 'object' &&
+      ('nativeEvent' in directAnswer || 'target' in directAnswer || 'preventDefault' in directAnswer);
+
+    const answerToValidate =
+      !isEvent && directAnswer !== undefined ? directAnswer : teamKnowledge.selectedAnswer;
+
+    if (answerToValidate === null || answerToValidate === undefined) return;
+
+    setTeamKnowledge((prev) => ({ ...prev, selectedAnswer: answerToValidate, isSubmitting: true }));
+    const isCorrect = checkAnswerCorrectness(q, answerToValidate);
 
     if (isCorrect) {
       soundFx.playCorrect();
@@ -290,12 +302,22 @@ export const App: React.FC = () => {
   };
 
   // Submit Answer for Team Heritage
-  const handleSubmitAnswerB = () => {
+  const handleSubmitAnswerB = (directAnswer?: any) => {
     const q = teamHeritage.currentQuestion;
-    if (!q || teamHeritage.isSubmitting) return;
+    if (!q || teamHeritage.isSubmitting || teamHeritage.isDiscovering) return;
 
-    setTeamHeritage((prev) => ({ ...prev, isSubmitting: true }));
-    const isCorrect = checkAnswerCorrectness(q, teamHeritage.selectedAnswer);
+    const isEvent =
+      directAnswer &&
+      typeof directAnswer === 'object' &&
+      ('nativeEvent' in directAnswer || 'target' in directAnswer || 'preventDefault' in directAnswer);
+
+    const answerToValidate =
+      !isEvent && directAnswer !== undefined ? directAnswer : teamHeritage.selectedAnswer;
+
+    if (answerToValidate === null || answerToValidate === undefined) return;
+
+    setTeamHeritage((prev) => ({ ...prev, selectedAnswer: answerToValidate, isSubmitting: true }));
+    const isCorrect = checkAnswerCorrectness(q, answerToValidate);
 
     if (isCorrect) {
       soundFx.playCorrect();

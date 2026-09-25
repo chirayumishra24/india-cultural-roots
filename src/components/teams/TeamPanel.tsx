@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Compass,
   Sun,
@@ -15,7 +15,7 @@ import { soundFx } from '../../game/audioEngine';
 interface TeamPanelProps {
   team: TeamProgress;
   onSelectAnswer: (answer: any) => void;
-  onSubmitAnswer: () => void;
+  onSubmitAnswer: (directAnswer?: any) => void;
   onUseFiftyFifty: () => void;
   onUseRootHint: () => void;
   onOpenArchive: () => void;
@@ -39,6 +39,11 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
     selectedLeft: string | null;
     matchedPairs: Record<string, string>; // left -> right
   }>({ selectedLeft: null, matchedPairs: {} });
+
+  // Reset local match selection whenever a new question is loaded
+  useEffect(() => {
+    setMatchSelection({ selectedLeft: null, matchedPairs: {} });
+  }, [team.currentQuestion?.id]);
 
   const progressPercent = Math.min(100, Math.round((team.discoveries / 20) * 100));
 
@@ -82,6 +87,13 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
       matchedPairs: updated
     });
     onSelectAnswer(updated);
+
+    const neededCount = q?.pairs?.length || 0;
+    if (Object.keys(updated).length >= neededCount) {
+      setTimeout(() => {
+        onSubmitAnswer(updated);
+      }, 400);
+    }
   };
 
   return (
@@ -221,6 +233,9 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                   onClick={() => {
                     soundFx.playSelect();
                     onSelectAnswer(idx);
+                    setTimeout(() => {
+                      onSubmitAnswer(idx);
+                    }, 350);
                   }}
                   className={`w-full text-left p-2.5 sm:p-3 rounded-xl border-2 transition-all flex items-center gap-3 shadow-xs ${
                     isSelected
@@ -257,6 +272,9 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
                     onClick={() => {
                       soundFx.playSelect();
                       onSelectAnswer(idx);
+                      setTimeout(() => {
+                        onSubmitAnswer(idx);
+                      }, 350);
                     }}
                     className={`w-full p-3 rounded-xl border-2 text-left transition-all flex items-center gap-3 shadow-xs ${
                       isSelected
@@ -359,7 +377,11 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
               <button
                 onClick={() => {
                   soundFx.playSelect();
-                  onSelectAnswer(q.sequenceItems);
+                  const seq = selected || q.sequenceItems;
+                  onSelectAnswer(seq);
+                  setTimeout(() => {
+                    onSubmitAnswer(seq);
+                  }, 300);
                 }}
                 className={`mt-2 w-full py-1.5 rounded-lg text-xs font-bold transition-all ${
                   isBlue
@@ -464,7 +486,15 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({
 
         {/* 4. Big Claymorphic Submit Button */}
         <button
-          onClick={onSubmitAnswer}
+          onClick={() => {
+            const finalAns =
+              q?.type === 'match'
+                ? matchSelection.matchedPairs
+                : q?.type === 'sequence'
+                ? selected || q.sequenceItems
+                : selected;
+            onSubmitAnswer(finalAns);
+          }}
           disabled={!canSubmit}
           className={`w-full py-3.5 px-4 rounded-2xl font-black text-sm uppercase tracking-wider text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg ${
             canSubmit

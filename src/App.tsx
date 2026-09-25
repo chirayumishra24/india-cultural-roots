@@ -1,733 +1,651 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BoardBackground } from './components/layout/BoardBackground';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TopHeader } from './components/layout/TopHeader';
-import { ChallengeSelectorBar } from './components/layout/ChallengeSelectorBar';
+import { DiscoveryProgressBottom } from './components/layout/DiscoveryProgressBottom';
 import { TeamPanel } from './components/teams/TeamPanel';
-import { TeamMascot } from './components/teams/TeamMascot';
-import { TreeProgressWidget } from './components/teams/TreeProgressWidget';
-import { CulturalRootsTree } from './components/tree/CulturalRootsTree';
-import { HeritageDiscoveryCard } from './components/cards/HeritageDiscoveryCard';
-import { CardInspectModal } from './components/cards/CardInspectModal';
-import { TokenFlyEffect } from './components/tree/TokenFlyEffect';
+import { CulturalWorld3D } from './components/world/CulturalWorld3D';
+import { MapRouteView } from './components/world/MapRouteView';
 
-// Challenges
-import { KnowItChallenge } from './components/challenges/KnowItChallenge';
-import { FindItChallenge } from './components/challenges/FindItChallenge';
-import { RootItChallenge } from './components/challenges/RootItChallenge';
-import { ConnectItChallenge } from './components/challenges/ConnectItChallenge';
-import { BuildItChallenge } from './components/challenges/BuildItChallenge';
-import { ShowItChallenge } from './components/challenges/ShowItChallenge';
-import { ThinkItChallenge } from './components/challenges/ThinkItChallenge';
-import { BlitzChallenge } from './components/challenges/BlitzChallenge';
-import { MysteryChallenge } from './components/challenges/MysteryChallenge';
+// Modals & Overlays
+import { StartScreenModal } from './components/modals/StartScreenModal';
+import { HowToPlayModal } from './components/modals/HowToPlayModal';
+import { KnowledgeArchiveModal } from './components/modals/KnowledgeArchiveModal';
+import { CulturalTreeModal } from './components/tree/CulturalTreeModal';
+import { TeacherDashboardModal } from './components/modals/TeacherDashboardModal';
+import { CountdownOverlay } from './components/modals/CountdownOverlay';
+import { CompletionReviewModal } from './components/modals/CompletionReviewModal';
 
-// Modals & Panels
-import { IntroModal } from './components/modals/IntroModal';
-import { TeamSetupModal } from './components/modals/TeamSetupModal';
-import { TeacherPanelModal } from './components/modals/TeacherPanelModal';
-import { StealModal } from './components/modals/StealModal';
-import { LivingCultureModal } from './components/modals/LivingCultureModal';
-import { ResultsModal } from './components/modals/ResultsModal';
-import { ReflectionModal } from './components/modals/ReflectionModal';
-import { SubBranchExploreModal } from './components/tree/SubBranchExploreModal';
-import { RegionalTapestryDrawer } from './components/layout/RegionalTapestryDrawer';
-
-// Data & Logic
-import { TeamId, TeamScore, ChallengeCategoryType, GamePhase, SkillPracticeLog } from './types/game';
-import { CulturalTreeNode, HeritageDiscoveryCardData } from './types/tree';
-import { INITIAL_TREE_NODES } from './data/roots';
-import { INITIAL_HERITAGE_CARDS } from './data/culturalCards';
-import {
-  FIND_IT_CHALLENGES,
-  ROOT_IT_CHALLENGES,
-  CONNECT_IT_CHALLENGES,
-  BUILD_IT_CHALLENGES,
-  SHOW_IT_CHALLENGES,
-  THINK_IT_CHALLENGES,
-  BLITZ_ITEMS,
-  CHALLENGE_CATEGORIES,
-} from './data/challenges';
-import { FINAL_CULTURAL_MYSTERY } from './data/mysteries';
-import { questionManager } from './game/questionManager';
-import { awardPointsAndToken, awardSteal, INITIAL_TEAM_SCORE, TokenType } from './game/scoring';
+// Types & Data
+import { TeamProgress, Question, GameStatus } from './types/game';
+import { INITIAL_QUESTIONS } from './data/questionsData';
+import { DISCOVERIES_LIST, getZoneForDiscovery } from './data/discoveriesData';
 import { soundFx } from './game/audioEngine';
-import {
-  getSavedTeamNames,
-  saveTeamNames,
-  getSavedSoundPreference,
-  saveSoundPreference,
-  getSavedTimerPreference,
-  saveTimerPreference,
-} from './game/storage';
 
 export const App: React.FC = () => {
-  // Game Phase & Navigation
-  const [phase, setPhase] = useState<GamePhase>('intro');
-  const [currentRound, setCurrentRound] = useState(1);
-  const maxRounds = 8;
-  const [activeTeam, setActiveTeam] = useState<TeamId>('teamA');
+  // Game Status
+  const [gameStatus, setGameStatus] = useState<GameStatus>('setup');
+  const [viewMode, setViewMode] = useState<'3d' | 'map'>('3d');
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
 
-  // Teams & Scores
-  const [teamNames, setTeamNames] = useState(getSavedTeamNames);
-  const [teamAScore, setTeamAScore] = useState<TeamScore>(INITIAL_TEAM_SCORE);
-  const [teamBScore, setTeamBScore] = useState<TeamScore>(INITIAL_TEAM_SCORE);
+  // Timer: 5 minutes (300 seconds default)
+  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(300);
 
-  // Tree & Cards State
-  const [treeNodes, setTreeNodes] = useState<CulturalTreeNode[]>(INITIAL_TREE_NODES);
-  const [heritageCards, setHeritageCards] = useState<HeritageDiscoveryCardData[]>(INITIAL_HERITAGE_CARDS);
-  const [inspectedCard, setInspectedCard] = useState<HeritageDiscoveryCardData | null>(null);
-  const [selectedExploreNode, setSelectedExploreNode] = useState<CulturalTreeNode | null>(null);
-  const [regionalDrawerOpen, setRegionalDrawerOpen] = useState(false);
-  const [activeFlyToken, setActiveFlyToken] = useState<TokenType | null>(null);
+  // Questions Database (allows teacher modification)
+  const [questionsBank, setQuestionsBank] = useState<Question[]>(INITIAL_QUESTIONS);
 
-  // Selected Challenge Category
-  const [selectedCategory, setSelectedCategory] = useState<ChallengeCategoryType>('root_it');
+  // Active Highlight Zone for Root Hint (1-6)
+  const [activeHintZone, setActiveHintZone] = useState<number | null>(null);
 
-  // Active Challenge Data Instances
-  const [quizData, setQuizData] = useState(() => questionManager.getNextQuizQuestion());
-  const [findItData, setFindItData] = useState(() => FIND_IT_CHALLENGES[0]);
-  const [rootItData, setRootItData] = useState(() => ROOT_IT_CHALLENGES[0]);
-  const [connectItData, setConnectItData] = useState(() => CONNECT_IT_CHALLENGES[0]);
-  const [buildItData, setBuildItData] = useState(() => BUILD_IT_CHALLENGES[0]);
-  const [showItData, setShowItData] = useState(() => SHOW_IT_CHALLENGES[0]);
-  const [thinkItData, setThinkItData] = useState(() => THINK_IT_CHALLENGES[0]);
+  // Modals state
+  const [isHowToPlayOpen, setIsHowToPlayOpen] = useState(false);
+  const [isTreeModalOpen, setIsTreeModalOpen] = useState(false);
+  const [isTeacherModalOpen, setIsTeacherModalOpen] = useState(false);
+  const [archiveModalTeam, setArchiveModalTeam] = useState<'teamKnowledge' | 'teamHeritage' | null>(null);
 
-  // Timers & Settings
-  const [soundEnabled, setSoundEnabled] = useState(getSavedSoundPreference);
-  const [timerEnabled, setTimerEnabled] = useState(getSavedTimerPreference);
-  const [isPaused, setIsPaused] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
+  // Missed Questions Tracker for Post-game Review
+  const [missedQuestions, setMissedQuestions] = useState<Question[]>([]);
 
-  // Steal Modal State
-  const [stealActive, setStealActive] = useState(false);
+  // Helper to pick next question for a team based on target discovery
+  const getNextQuestionForDiscovery = useCallback(
+    (discoveryId: number, usedIds: string[]): Question => {
+      const zone = getZoneForDiscovery(discoveryId);
+      // Try to find questions in matching zone first
+      const candidates = questionsBank.filter(
+        (q) => !usedIds.includes(q.id) && getZoneForDiscovery(q.discoveryId).index === zone.index
+      );
+      if (candidates.length > 0) {
+        return candidates[Math.floor(Math.random() * candidates.length)];
+      }
+      // Fallback: any unused question
+      const unused = questionsBank.filter((q) => !usedIds.includes(q.id));
+      if (unused.length > 0) {
+        return unused[Math.floor(Math.random() * unused.length)];
+      }
+      // Last resort: any question
+      return questionsBank[Math.floor(Math.random() * questionsBank.length)];
+    },
+    [questionsBank]
+  );
 
-  // Teacher Panel Modal State
-  const [teacherPanelOpen, setTeacherPanelOpen] = useState(false);
-
-  // Learning Skills Practice Tracker
-  const [skillsLog, setSkillsLog] = useState<SkillPracticeLog>({
-    observation: 0,
-    connection: 0,
-    reasoning: 0,
-    evidence: 0,
-    sequencing: 0,
-    communication: 0,
+  // Team Knowledge (Blue) State
+  const [teamKnowledge, setTeamKnowledge] = useState<TeamProgress>(() => {
+    const firstQ = INITIAL_QUESTIONS[0];
+    return {
+      teamId: 'teamKnowledge',
+      name: 'Team Knowledge',
+      colorHex: '#2563EB',
+      tagline: 'Explore • Learn • Discover',
+      discoveries: 0,
+      score: 0,
+      correctAnswers: 0,
+      totalAnswers: 0,
+      currentZoneIndex: 1,
+      currentQuestion: firstQ,
+      selectedAnswer: null,
+      streak: 0,
+      maxStreak: 0,
+      fiftyFiftyRemaining: 1,
+      rootHintsRemaining: 2,
+      eliminatedOptions: [],
+      unlockedDiscoveries: [],
+      isSubmitting: false,
+      isDiscovering: false,
+      latestUnlockedDiscovery: null,
+      zoneTransitionBanner: null
+    };
   });
 
-  // Keep soundFx in sync with state
-  useEffect(() => {
-    soundFx.setMuted(!soundEnabled);
-  }, [soundEnabled]);
+  // Team Heritage (Orange) State
+  const [teamHeritage, setTeamHeritage] = useState<TeamProgress>(() => {
+    // Pick different question for Team B initially
+    const secondQ = INITIAL_QUESTIONS[1] || INITIAL_QUESTIONS[0];
+    return {
+      teamId: 'teamHeritage',
+      name: 'Team Heritage',
+      colorHex: '#EA580C',
+      tagline: 'Find • Analyse • Uncover',
+      discoveries: 0,
+      score: 0,
+      correctAnswers: 0,
+      totalAnswers: 0,
+      currentZoneIndex: 1,
+      currentQuestion: secondQ,
+      selectedAnswer: null,
+      streak: 0,
+      maxStreak: 0,
+      fiftyFiftyRemaining: 1,
+      rootHintsRemaining: 2,
+      eliminatedOptions: [],
+      unlockedDiscoveries: [],
+      isSubmitting: false,
+      isDiscovering: false,
+      latestUnlockedDiscovery: null,
+      zoneTransitionBanner: null
+    };
+  });
 
-  // Timer countdown hook
+  // Used Questions Tracker per team
+  const usedQuestionsRef = useRef<{ teamA: string[]; teamB: string[] }>({
+    teamA: [INITIAL_QUESTIONS[0]?.id || ''],
+    teamB: [INITIAL_QUESTIONS[1]?.id || '']
+  });
+
+  // Sound Sync
+  const handleToggleSound = () => {
+    const isMuted = soundFx.toggleMuted();
+    setIsSoundMuted(isMuted);
+  };
+
+  // Start Quest Click
+  const handleStartQuest = () => {
+    soundFx.playSelect();
+    setGameStatus('countdown');
+  };
+
+  // Countdown Complete -> Play
+  const handleCountdownComplete = () => {
+    setGameStatus('playing');
+  };
+
+  // Game Timer Hook
   useEffect(() => {
-    if (phase !== 'playing' || !timerEnabled || isPaused || stealActive) return;
-    if (timeLeft <= 0) {
-      // Time expired: advance turn
-      soundFx.playIncorrect();
-      switchTurn();
+    if (gameStatus !== 'playing') return;
+
+    if (timeRemainingSeconds <= 0) {
+      soundFx.playCompletion();
+      setGameStatus('finished');
       return;
     }
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeRemainingSeconds((prev) => {
+        if (prev === 61) {
+          // Final Minute alert
+          soundFx.playCountdownBeep(true);
+        }
+        if (prev <= 1) {
+          clearInterval(timer);
+          soundFx.playCompletion();
+          setGameStatus('finished');
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [phase, timerEnabled, isPaused, stealActive, timeLeft]);
+  }, [gameStatus, timeRemainingSeconds]);
 
-  // Reset timer on category change
-  const resetTimerForCategory = useCallback((catType: ChallengeCategoryType) => {
-    const meta = CHALLENGE_CATEGORIES.find((c) => c.type === catType);
-    setTimeLeft(meta ? meta.defaultTimeSeconds : 30);
-  }, []);
-
-  // Handle Team switching & Round advancement
-  const switchTurn = useCallback(() => {
-    setActiveTeam((prev) => (prev === 'teamA' ? 'teamB' : 'teamA'));
-    setCurrentRound((prevRound) => {
-      const nextRound = prevRound + 1;
-      if (nextRound > maxRounds) {
-        setPhase('final_mystery');
-        return maxRounds;
+  // Finish game if either team reaches 20 discoveries
+  useEffect(() => {
+    if (gameStatus === 'playing') {
+      if (teamKnowledge.discoveries >= 20 || teamHeritage.discoveries >= 20) {
+        soundFx.playCompletion();
+        setGameStatus('finished');
       }
-      return nextRound;
-    });
+    }
+  }, [teamKnowledge.discoveries, teamHeritage.discoveries, gameStatus]);
 
-    // Pick next challenge category cyclically or randomize
-    const nextCatIndex = (CHALLENGE_CATEGORIES.findIndex((c) => c.type === selectedCategory) + 1) % CHALLENGE_CATEGORIES.length;
-    const nextCat = CHALLENGE_CATEGORIES[nextCatIndex].type;
-    setSelectedCategory(nextCat);
-    resetTimerForCategory(nextCat);
+  // ---------------- Team Submission Handlers (Strictly Independent) ----------------
 
-    // Refresh questions and rotate other challenges
-    setQuizData(questionManager.getNextQuizQuestion());
-    setFindItData(FIND_IT_CHALLENGES[Math.floor(Math.random() * FIND_IT_CHALLENGES.length)]);
-    setRootItData(ROOT_IT_CHALLENGES[Math.floor(Math.random() * ROOT_IT_CHALLENGES.length)]);
-    setConnectItData(CONNECT_IT_CHALLENGES[Math.floor(Math.random() * CONNECT_IT_CHALLENGES.length)]);
-    setBuildItData(BUILD_IT_CHALLENGES[Math.floor(Math.random() * BUILD_IT_CHALLENGES.length)]);
-    setShowItData(SHOW_IT_CHALLENGES[Math.floor(Math.random() * SHOW_IT_CHALLENGES.length)]);
-    setThinkItData(THINK_IT_CHALLENGES[Math.floor(Math.random() * THINK_IT_CHALLENGES.length)]);
-  }, [maxRounds, selectedCategory, resetTimerForCategory]);
-
-  // Discovered roots counter
-  const discoveredRootsCount = treeNodes.filter((n) => n.isDiscovered).length;
-
-  // Mark a cultural category as discovered on the tree
-  const activateTreeNode = (categoryId: string) => {
-    setTreeNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === categoryId
-          ? {
-              ...node,
-              isDiscovered: true,
-              discoveredCount: node.discoveredCount + 1,
-            }
-          : node
-      )
-    );
-
-    // Unlock corresponding card
-    setHeritageCards((prevCards) =>
-      prevCards.map((card) =>
-        card.connectedNodeId === categoryId
-          ? { ...card, isDiscovered: true }
-          : card
-      )
-    );
+  // Team Knowledge Answer Select
+  const handleSelectAnswerA = (answer: any) => {
+    setTeamKnowledge((prev) => ({ ...prev, selectedAnswer: answer }));
   };
 
-  // Generic Challenge Answer Handler
-  const handleChallengeAnswer = (
-    isCorrect: boolean,
-    categoryId: string,
-    points: number,
-    tokenType: TokenType,
-    skillArea: keyof SkillPracticeLog
-  ) => {
-    // Log skill practice
-    setSkillsLog((prev) => ({ ...prev, [skillArea]: prev[skillArea] + 1 }));
+  // Team Heritage Answer Select
+  const handleSelectAnswerB = (answer: any) => {
+    setTeamHeritage((prev) => ({ ...prev, selectedAnswer: answer }));
+  };
+
+  // Evaluate Answer Correctness
+  const checkAnswerCorrectness = (q: Question, answer: any): boolean => {
+    if (q.type === 'mcq' || q.type === 'true-false' || q.type === 'scenario') {
+      return answer === q.correctAnswer;
+    }
+    if (q.type === 'match') {
+      if (!q.pairs || !answer) return false;
+      return q.pairs.every((pair) => answer[pair.id] === pair.right);
+    }
+    if (q.type === 'sequence') {
+      return true; // Guided sequence completion
+    }
+    if (q.type === 'sorting') {
+      if (!q.sortItems || !answer) return false;
+      return q.sortItems.every((item) => answer[item.id] === item.targetCategory);
+    }
+    return true;
+  };
+
+  // Submit Answer for Team Knowledge
+  const handleSubmitAnswerA = () => {
+    const q = teamKnowledge.currentQuestion;
+    if (!q || teamKnowledge.isSubmitting) return;
+
+    setTeamKnowledge((prev) => ({ ...prev, isSubmitting: true }));
+    const isCorrect = checkAnswerCorrectness(q, teamKnowledge.selectedAnswer);
 
     if (isCorrect) {
       soundFx.playCorrect();
-      setActiveFlyToken(tokenType);
-      activateTreeNode(categoryId);
+      const nextDiscoveryCount = teamKnowledge.discoveries + 1;
+      const nextStreak = teamKnowledge.streak + 1;
+      const streakBonus = nextStreak >= 3 ? 150 : 0;
+      if (nextStreak === 3) soundFx.playKnowledgeChain();
 
-      if (activeTeam === 'teamA') {
-        setTeamAScore((prev) => awardPointsAndToken(prev, points, tokenType));
-      } else {
-        setTeamBScore((prev) => awardPointsAndToken(prev, points, tokenType));
-      }
+      const unlockedDisc =
+        DISCOVERIES_LIST[nextDiscoveryCount - 1] || DISCOVERIES_LIST[DISCOVERIES_LIST.length - 1];
+
+      soundFx.playDiscoveryUnlock();
+
+      // Check for Zone Transition
+      const oldZone = getZoneForDiscovery(teamKnowledge.discoveries || 1);
+      const newZone = getZoneForDiscovery(nextDiscoveryCount);
+      const transitionText =
+        newZone.index !== oldZone.index ? `Entering Zone ${newZone.index}: ${newZone.title}` : null;
+
+      setTeamKnowledge((prev) => ({
+        ...prev,
+        discoveries: nextDiscoveryCount,
+        score: prev.score + 100 + streakBonus,
+        correctAnswers: prev.correctAnswers + 1,
+        totalAnswers: prev.totalAnswers + 1,
+        streak: nextStreak,
+        maxStreak: Math.max(prev.maxStreak, nextStreak),
+        unlockedDiscoveries: [...prev.unlockedDiscoveries, unlockedDisc.id],
+        isDiscovering: true,
+        latestUnlockedDiscovery: unlockedDisc,
+        zoneTransitionBanner: transitionText
+      }));
+
+      // Non-blocking timer to close discovery card and load next question
+      setTimeout(() => {
+        const nextDiscToAim = nextDiscoveryCount + 1;
+        const nextQ = getNextQuestionForDiscovery(
+          nextDiscToAim,
+          usedQuestionsRef.current.teamA
+        );
+        usedQuestionsRef.current.teamA.push(nextQ.id);
+
+        setTeamKnowledge((prev) => ({
+          ...prev,
+          currentQuestion: nextQ,
+          selectedAnswer: null,
+          eliminatedOptions: [],
+          isSubmitting: false,
+          isDiscovering: false,
+          latestUnlockedDiscovery: null,
+          zoneTransitionBanner: null
+        }));
+      }, 2600);
+    } else {
+      // Incorrect
+      soundFx.playIncorrect();
+      setMissedQuestions((prev) => [...prev, q]);
+      setTeamKnowledge((prev) => ({
+        ...prev,
+        totalAnswers: prev.totalAnswers + 1,
+        streak: 0,
+        isSubmitting: false
+      }));
+    }
+  };
+
+  // Submit Answer for Team Heritage
+  const handleSubmitAnswerB = () => {
+    const q = teamHeritage.currentQuestion;
+    if (!q || teamHeritage.isSubmitting) return;
+
+    setTeamHeritage((prev) => ({ ...prev, isSubmitting: true }));
+    const isCorrect = checkAnswerCorrectness(q, teamHeritage.selectedAnswer);
+
+    if (isCorrect) {
+      soundFx.playCorrect();
+      const nextDiscoveryCount = teamHeritage.discoveries + 1;
+      const nextStreak = teamHeritage.streak + 1;
+      const streakBonus = nextStreak >= 3 ? 150 : 0;
+      if (nextStreak === 3) soundFx.playKnowledgeChain();
+
+      const unlockedDisc =
+        DISCOVERIES_LIST[nextDiscoveryCount - 1] || DISCOVERIES_LIST[DISCOVERIES_LIST.length - 1];
+
+      soundFx.playDiscoveryUnlock();
+
+      const oldZone = getZoneForDiscovery(teamHeritage.discoveries || 1);
+      const newZone = getZoneForDiscovery(nextDiscoveryCount);
+      const transitionText =
+        newZone.index !== oldZone.index ? `Entering Zone ${newZone.index}: ${newZone.title}` : null;
+
+      setTeamHeritage((prev) => ({
+        ...prev,
+        discoveries: nextDiscoveryCount,
+        score: prev.score + 100 + streakBonus,
+        correctAnswers: prev.correctAnswers + 1,
+        totalAnswers: prev.totalAnswers + 1,
+        streak: nextStreak,
+        maxStreak: Math.max(prev.maxStreak, nextStreak),
+        unlockedDiscoveries: [...prev.unlockedDiscoveries, unlockedDisc.id],
+        isDiscovering: true,
+        latestUnlockedDiscovery: unlockedDisc,
+        zoneTransitionBanner: transitionText
+      }));
 
       setTimeout(() => {
-        switchTurn();
-      }, 1400);
+        const nextDiscToAim = nextDiscoveryCount + 1;
+        const nextQ = getNextQuestionForDiscovery(
+          nextDiscToAim,
+          usedQuestionsRef.current.teamB
+        );
+        usedQuestionsRef.current.teamB.push(nextQ.id);
+
+        setTeamHeritage((prev) => ({
+          ...prev,
+          currentQuestion: nextQ,
+          selectedAnswer: null,
+          eliminatedOptions: [],
+          isSubmitting: false,
+          isDiscovering: false,
+          latestUnlockedDiscovery: null,
+          zoneTransitionBanner: null
+        }));
+      }, 2600);
     } else {
       soundFx.playIncorrect();
-      // If quiz question and answered wrong -> Offer steal opportunity!
-      if (selectedCategory === 'know_it') {
-        setStealActive(true);
-      } else {
-        setTimeout(() => {
-          switchTurn();
-        }, 1200);
-      }
+      setMissedQuestions((prev) => [...prev, q]);
+      setTeamHeritage((prev) => ({
+        ...prev,
+        totalAnswers: prev.totalAnswers + 1,
+        streak: 0,
+        isSubmitting: false
+      }));
     }
   };
 
-  // Steal Attempt Handler
-  const handleStealResult = (isCorrect: boolean) => {
-    setStealActive(false);
-    const stealingTeam = activeTeam === 'teamA' ? 'teamB' : 'teamA';
+  // ---------------- Power-Up Handlers ----------------
 
-    if (isCorrect) {
-      soundFx.playCorrect();
-      if (stealingTeam === 'teamA') {
-        setTeamAScore((prev) => awardSteal(prev));
-      } else {
-        setTeamBScore((prev) => awardSteal(prev));
-      }
-      setSkillsLog((prev) => ({ ...prev, reasoning: prev.reasoning + 1 }));
-    } else {
-      soundFx.playIncorrect();
-    }
+  // Team Knowledge 50/50
+  const handleUseFiftyFiftyA = () => {
+    const q = teamKnowledge.currentQuestion;
+    if (!q || q.type !== 'mcq' || teamKnowledge.fiftyFiftyRemaining <= 0) return;
+    soundFx.playSelect();
 
-    switchTurn();
+    const correctIdx = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
+    const incorrectIndices = [0, 1, 2, 3].filter((i) => i !== correctIdx);
+    const eliminated = incorrectIndices.slice(0, 2);
+
+    setTeamKnowledge((prev) => ({
+      ...prev,
+      fiftyFiftyRemaining: prev.fiftyFiftyRemaining - 1,
+      eliminatedOptions: eliminated
+    }));
   };
 
-  // Final Mystery Answer Handler
-  const handleFinalMysteryAnswer = (isCorrect: boolean) => {
-    if (isCorrect) {
-      soundFx.playCorrect();
-      if (activeTeam === 'teamA') {
-        setTeamAScore((prev) => awardPointsAndToken(prev, 25, 'root'));
-      } else {
-        setTeamBScore((prev) => awardPointsAndToken(prev, 25, 'root'));
-      }
-      // Trigger all tree nodes discovered
-      setTreeNodes((prev) => prev.map((n) => ({ ...n, isDiscovered: true })));
-      setPhase('living_culture');
-    } else {
-      soundFx.playIncorrect();
-      setPhase('living_culture');
-    }
+  // Team Heritage 50/50
+  const handleUseFiftyFiftyB = () => {
+    const q = teamHeritage.currentQuestion;
+    if (!q || q.type !== 'mcq' || teamHeritage.fiftyFiftyRemaining <= 0) return;
+    soundFx.playSelect();
+
+    const correctIdx = typeof q.correctAnswer === 'number' ? q.correctAnswer : 0;
+    const incorrectIndices = [0, 1, 2, 3].filter((i) => i !== correctIdx);
+    const eliminated = incorrectIndices.slice(0, 2);
+
+    setTeamHeritage((prev) => ({
+      ...prev,
+      fiftyFiftyRemaining: prev.fiftyFiftyRemaining - 1,
+      eliminatedOptions: eliminated
+    }));
   };
 
-  // Start Quest after Team Setup
-  const handleTeamSetupConfirm = (aName: string, bName: string) => {
-    setTeamNames({ teamA: aName, teamB: bName });
-    saveTeamNames(aName, bName);
-    setPhase('playing');
-    resetTimerForCategory(selectedCategory);
+  // Team Knowledge Root Hint (Highlights Central Zone)
+  const handleUseRootHintA = () => {
+    const q = teamKnowledge.currentQuestion;
+    if (!q || teamKnowledge.rootHintsRemaining <= 0) return;
+    soundFx.playRootHint();
+
+    const zone = getZoneForDiscovery(q.discoveryId);
+    setActiveHintZone(zone.index);
+
+    setTeamKnowledge((prev) => ({
+      ...prev,
+      rootHintsRemaining: prev.rootHintsRemaining - 1
+    }));
+
+    setTimeout(() => {
+      setActiveHintZone(null);
+    }, 4500);
   };
 
-  // Objective prompt text based on category
-  const objectivePrompt =
-    CHALLENGE_CATEGORIES.find((c) => c.type === selectedCategory)?.sublabel ||
-    'Explore, connect and discover how India\'s cultural roots shape our present.';
+  // Team Heritage Root Hint
+  const handleUseRootHintB = () => {
+    const q = teamHeritage.currentQuestion;
+    if (!q || teamHeritage.rootHintsRemaining <= 0) return;
+    soundFx.playRootHint();
+
+    const zone = getZoneForDiscovery(q.discoveryId);
+    setActiveHintZone(zone.index);
+
+    setTeamHeritage((prev) => ({
+      ...prev,
+      rootHintsRemaining: prev.rootHintsRemaining - 1
+    }));
+
+    setTimeout(() => {
+      setActiveHintZone(null);
+    }, 4500);
+  };
+
+  // Reset Quest
+  const handlePlayAgain = () => {
+    setTimeRemainingSeconds(300);
+    usedQuestionsRef.current = {
+      teamA: [INITIAL_QUESTIONS[0]?.id || ''],
+      teamB: [INITIAL_QUESTIONS[1]?.id || '']
+    };
+    setMissedQuestions([]);
+
+    setTeamKnowledge({
+      teamId: 'teamKnowledge',
+      name: 'Team Knowledge',
+      colorHex: '#2563EB',
+      tagline: 'Explore • Learn • Discover',
+      discoveries: 0,
+      score: 0,
+      correctAnswers: 0,
+      totalAnswers: 0,
+      currentZoneIndex: 1,
+      currentQuestion: INITIAL_QUESTIONS[0],
+      selectedAnswer: null,
+      streak: 0,
+      maxStreak: 0,
+      fiftyFiftyRemaining: 1,
+      rootHintsRemaining: 2,
+      eliminatedOptions: [],
+      unlockedDiscoveries: [],
+      isSubmitting: false,
+      isDiscovering: false,
+      latestUnlockedDiscovery: null,
+      zoneTransitionBanner: null
+    });
+
+    setTeamHeritage({
+      teamId: 'teamHeritage',
+      name: 'Team Heritage',
+      colorHex: '#EA580C',
+      tagline: 'Find • Analyse • Uncover',
+      discoveries: 0,
+      score: 0,
+      correctAnswers: 0,
+      totalAnswers: 0,
+      currentZoneIndex: 1,
+      currentQuestion: INITIAL_QUESTIONS[1] || INITIAL_QUESTIONS[0],
+      selectedAnswer: null,
+      streak: 0,
+      maxStreak: 0,
+      fiftyFiftyRemaining: 1,
+      rootHintsRemaining: 2,
+      eliminatedOptions: [],
+      unlockedDiscoveries: [],
+      isSubmitting: false,
+      isDiscovering: false,
+      latestUnlockedDiscovery: null,
+      zoneTransitionBanner: null
+    });
+
+    setGameStatus('countdown');
+  };
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between overflow-x-hidden">
-      <BoardBackground />
-
-      {/* 1. TOP HEADER */}
+    <div className="w-screen h-screen overflow-hidden bg-gradient-to-b from-[#EBF5FF] via-[#F4F9FF] to-[#E6F0FA] flex flex-col justify-between p-3 gap-2.5 font-sans">
+      {/* 1. Top Header */}
       <TopHeader
-        currentRound={currentRound}
-        maxRounds={maxRounds}
-        timeLeft={timeLeft}
-        timerEnabled={timerEnabled}
-        soundEnabled={soundEnabled}
-        objectiveText={objectivePrompt}
-        onToggleSound={() => {
-          const next = !soundEnabled;
-          setSoundEnabled(next);
-          saveSoundPreference(next);
-        }}
-        onOpenTeacherPanel={() => {
-          setIsPaused(true);
-          setTeacherPanelOpen(true);
-        }}
-      />
-
-      {/* 2. TOP CHALLENGE CATEGORY SELECTOR */}
-      <ChallengeSelectorBar
-        selectedCategory={selectedCategory}
-        onSelectCategory={(cat) => {
+        totalDiscoveries={20}
+        teamADiscoveries={teamKnowledge.discoveries}
+        teamBDiscoveries={teamHeritage.discoveries}
+        timeRemainingSeconds={timeRemainingSeconds}
+        viewMode={viewMode}
+        onToggleViewMode={(m) => {
           soundFx.playSelect();
-          setSelectedCategory(cat);
-          resetTimerForCategory(cat);
+          setViewMode(m);
         }}
+        onOpenTreeModal={() => {
+          soundFx.playSelect();
+          setIsTreeModalOpen(true);
+        }}
+        onOpenTeacherModal={() => {
+          soundFx.playSelect();
+          setIsTeacherModalOpen(true);
+        }}
+        onOpenHelpModal={() => {
+          soundFx.playSelect();
+          setIsHowToPlayOpen(true);
+        }}
+        isSoundMuted={isSoundMuted}
+        onToggleSound={handleToggleSound}
       />
 
-      {/* 3. MAIN GAMEPLAY BOARD */}
-      <main className="relative z-10 flex-1 w-full max-w-7xl 2xl:max-w-[1700px] mx-auto px-2 sm:px-3 md:px-4 py-1 flex flex-col lg:flex-row items-center justify-between gap-2 md:gap-4 2xl:gap-8">
-        {/* Left Side: Team A Panel & Mascot (Desktop & Smart Class) */}
-        <div className="hidden lg:flex flex-col items-center gap-2 order-1 shrink-0">
+      {/* 2. Main Classroom Split Arena: 30% Left | 40% Center World | 30% Right */}
+      <main className="flex-1 w-full grid grid-cols-12 gap-3 min-h-0 overflow-hidden">
+        {/* Left Arena: Team Knowledge (Blue) - 30% ~ col-span-3 or 4 */}
+        <section className="col-span-12 lg:col-span-4 xl:col-span-4 h-full min-h-0">
           <TeamPanel
-            teamId="teamA"
-            teamName={teamNames.teamA}
-            score={teamAScore}
-            isActiveTurn={activeTeam === 'teamA'}
-            onEditName={() => setTeacherPanelOpen(true)}
+            team={teamKnowledge}
+            onSelectAnswer={handleSelectAnswerA}
+            onSubmitAnswer={handleSubmitAnswerA}
+            onUseFiftyFifty={handleUseFiftyFiftyA}
+            onUseRootHint={handleUseRootHintA}
+            onOpenArchive={() => {
+              soundFx.playSelect();
+              setArchiveModalTeam('teamKnowledge');
+            }}
           />
-          <div className="hidden md:block">
-            <TeamMascot />
-          </div>
-        </div>
+        </section>
 
-        {/* Center: Hero Cultural Roots Tree & Heritage Cards */}
-        <div className="relative flex-1 flex flex-col items-center justify-center order-1 lg:order-2 w-full">
-          {/* Pan-Indian Perspectives Quick Trigger */}
-          <div className="relative lg:absolute lg:-top-3 lg:right-1/2 lg:translate-x-1/2 z-30 mb-1 lg:mb-0 pointer-events-auto">
-            <button
-              type="button"
-              onClick={() => setRegionalDrawerOpen(true)}
-              className="bg-white/95 hover:bg-amber-50 text-amber-900 border border-amber-300 rounded-full px-3.5 py-1 text-[11px] 2xl:text-xs font-black uppercase tracking-wider shadow-sm flex items-center gap-1.5 transition-all hover:scale-105"
-              title="Compare cultural roots across Indian regions"
-            >
-              <span>🗺️</span>
-              <span>Regional Perspectives</span>
-            </button>
-          </div>
-
-          <div className="relative w-full flex items-center justify-center">
-            {/* Symmetrically Arranged Heritage Discovery Cards (Desktop & Smart Class: >= lg) */}
-            <div className="hidden lg:flex absolute inset-0 pointer-events-none justify-between items-center z-20 px-2 md:px-4 2xl:px-8">
-              {/* Left Cards Stack */}
-              <div className="flex flex-col gap-3 2xl:gap-4 pointer-events-auto">
-                <HeritageDiscoveryCard
-                  card={heritageCards[0]} // Manuscript
-                  onClick={() => setInspectedCard(heritageCards[0])}
-                />
-                <HeritageDiscoveryCard
-                  card={heritageCards[1]} // Music
-                  onClick={() => setInspectedCard(heritageCards[1])}
-                />
-                <HeritageDiscoveryCard
-                  card={heritageCards[2]} // Textile
-                  onClick={() => setInspectedCard(heritageCards[2])}
-                />
-              </div>
-
-              {/* Right Cards Stack */}
-              <div className="flex flex-col gap-3 2xl:gap-4 pointer-events-auto">
-                <HeritageDiscoveryCard
-                  card={heritageCards[3]} // Architecture
-                  onClick={() => setInspectedCard(heritageCards[3])}
-                />
-                <HeritageDiscoveryCard
-                  card={heritageCards[4]} // Storytelling
-                  onClick={() => setInspectedCard(heritageCards[4])}
-                />
-                <HeritageDiscoveryCard
-                  card={heritageCards[5]} // Craft
-                  onClick={() => setInspectedCard(heritageCards[5])}
-                />
-              </div>
-            </div>
-
-            {/* Central Stylized Banyan Cultural Roots Tree */}
-            <CulturalRootsTree
-              nodes={treeNodes}
-              growthLevel={discoveredRootsCount}
-              isLivingCulture={phase === 'living_culture'}
-              highlightedCategory={
-                selectedCategory === 'know_it'
-                  ? quizData.category
-                  : selectedCategory === 'root_it'
-                  ? rootItData.category
-                  : null
-              }
-              onNodeClick={(node) => {
-                soundFx.playClick();
-                setSelectedExploreNode(node);
+        {/* Center Arena: 3D Miniature Cultural Diorama / Map View - 40% */}
+        <section className="col-span-12 lg:col-span-4 xl:col-span-4 h-full min-h-0 relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white/70">
+          {viewMode === '3d' ? (
+            <CulturalWorld3D
+              teamADiscoveries={teamKnowledge.discoveries}
+              teamBDiscoveries={teamHeritage.discoveries}
+              activeHintZoneIndex={activeHintZone}
+            />
+          ) : (
+            <MapRouteView
+              unlockedTeamA={teamKnowledge.unlockedDiscoveries}
+              unlockedTeamB={teamHeritage.unlockedDiscoveries}
+              teamADiscoveries={teamKnowledge.discoveries}
+              teamBDiscoveries={teamHeritage.discoveries}
+              onSelectZone={(zoneIdx) => {
+                soundFx.playSelect();
+                setActiveHintZone(zoneIdx);
+                setTimeout(() => setActiveHintZone(null), 3000);
               }}
             />
-          </div>
+          )}
+        </section>
 
-          {/* Mobile & Tablet Heritage Discovery Cards Shelf (< lg) */}
-          <div className="lg:hidden w-full max-w-md sm:max-w-xl mx-auto px-1 py-1 mt-1">
-            <div className="flex items-center justify-between mb-1 px-1">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-900">
-                Heritage Artifacts ({heritageCards.filter(c => c.isDiscovered).length}/6)
-              </span>
-              <span className="text-[9px] font-bold text-slate-500">Swipe to view</span>
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none snap-x pb-1 pt-0.5 px-1">
-              {heritageCards.map((card) => (
-                <div key={card.id} className="snap-center shrink-0">
-                  <HeritageDiscoveryCard
-                    card={card}
-                    onClick={() => setInspectedCard(card)}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Mobile & Tablet Team Scoreboard Strip (< lg) */}
-          <div className="lg:hidden w-full max-w-lg mx-auto grid grid-cols-2 gap-2 px-1 mt-2 order-3">
-            <TeamPanel
-              teamId="teamA"
-              teamName={teamNames.teamA}
-              score={teamAScore}
-              isActiveTurn={activeTeam === 'teamA'}
-              onEditName={() => setTeacherPanelOpen(true)}
-            />
-            <TeamPanel
-              teamId="teamB"
-              teamName={teamNames.teamB}
-              score={teamBScore}
-              isActiveTurn={activeTeam === 'teamB'}
-              onEditName={() => setTeacherPanelOpen(true)}
-            />
-          </div>
-        </div>
-
-        {/* Right Side: Team B Panel & Tree Progress (Desktop & Smart Class: >= lg) */}
-        <div className="hidden lg:flex flex-col items-center gap-2 order-3 shrink-0">
+        {/* Right Arena: Team Heritage (Orange) - 30% ~ col-span-3 or 4 */}
+        <section className="col-span-12 lg:col-span-4 xl:col-span-4 h-full min-h-0">
           <TeamPanel
-            teamId="teamB"
-            teamName={teamNames.teamB}
-            score={teamBScore}
-            isActiveTurn={activeTeam === 'teamB'}
-            onEditName={() => setTeacherPanelOpen(true)}
+            team={teamHeritage}
+            onSelectAnswer={handleSelectAnswerB}
+            onSubmitAnswer={handleSubmitAnswerB}
+            onUseFiftyFifty={handleUseFiftyFiftyB}
+            onUseRootHint={handleUseRootHintB}
+            onOpenArchive={() => {
+              soundFx.playSelect();
+              setArchiveModalTeam('teamHeritage');
+            }}
           />
-          <TreeProgressWidget
-            discoveredCount={discoveredRootsCount}
-            totalCategories={treeNodes.length}
-          />
-        </div>
+        </section>
       </main>
 
-      {/* 4. BOTTOM CHALLENGE CONSOLE DOCK */}
-      <footer className="relative z-20 pb-2">
-        {phase === 'playing' && (
-          <>
-            {selectedCategory === 'know_it' && (
-              <KnowItChallenge
-                data={quizData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, quizData.category, quizData.points, 'knowledge', 'observation')
-                }
-              />
-            )}
-
-            {selectedCategory === 'find_it' && (
-              <FindItChallenge
-                data={findItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, findItData.category, findItData.points, 'insight', 'evidence')
-                }
-              />
-            )}
-
-            {selectedCategory === 'root_it' && (
-              <RootItChallenge
-                data={rootItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect, catId) =>
-                  handleChallengeAnswer(isCorrect, catId, rootItData.points, 'root', 'connection')
-                }
-              />
-            )}
-
-            {selectedCategory === 'connect_it' && (
-              <ConnectItChallenge
-                data={connectItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, connectItData.category, connectItData.points, 'connection', 'connection')
-                }
-              />
-            )}
-
-            {selectedCategory === 'build_it' && (
-              <BuildItChallenge
-                data={buildItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, buildItData.category, buildItData.points, 'heritage', 'sequencing')
-                }
-              />
-            )}
-
-            {selectedCategory === 'show_it' && (
-              <ShowItChallenge
-                data={showItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                opposingTeamName={activeTeam === 'teamA' ? teamNames.teamB : teamNames.teamA}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, showItData.targetCategory, showItData.points, 'heritage', 'communication')
-                }
-              />
-            )}
-
-            {selectedCategory === 'think_it' && (
-              <ThinkItChallenge
-                data={thinkItData}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                timeLeft={timeLeft}
-                timerEnabled={timerEnabled}
-                onAnswer={(isCorrect) =>
-                  handleChallengeAnswer(isCorrect, thinkItData.category, thinkItData.points, 'insight', 'reasoning')
-                }
-              />
-            )}
-
-            {selectedCategory === 'blitz' && (
-              <BlitzChallenge
-                data={BLITZ_ITEMS}
-                activeTeam={activeTeam}
-                activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-                onFinish={(earned) => {
-                  if (activeTeam === 'teamA') {
-                    setTeamAScore((prev) => ({ ...prev, points: prev.points + earned }));
-                  } else {
-                    setTeamBScore((prev) => ({ ...prev, points: prev.points + earned }));
-                  }
-                  switchTurn();
-                }}
-              />
-            )}
-          </>
-        )}
-
-        {phase === 'final_mystery' && (
-          <MysteryChallenge
-            data={FINAL_CULTURAL_MYSTERY}
-            activeTeam={activeTeam}
-            activeTeamName={activeTeam === 'teamA' ? teamNames.teamA : teamNames.teamB}
-            timeLeft={timeLeft}
-            timerEnabled={timerEnabled}
-            onAnswer={handleFinalMysteryAnswer}
-          />
-        )}
-      </footer>
-
-      {/* 5. TOKEN FLY EFFECT ANIMATION */}
-      {activeFlyToken && (
-        <TokenFlyEffect
-          tokenType={activeFlyToken}
-          onAnimationEnd={() => setActiveFlyToken(null)}
-        />
-      )}
-
-      {/* 6. MODALS & POPUPS */}
-      {/* Intro Modal */}
-      {phase === 'intro' && (
-        <IntroModal onStart={() => setPhase('team_setup')} />
-      )}
-
-      {/* Team Setup Modal */}
-      {phase === 'team_setup' && (
-        <TeamSetupModal
-          initialTeamA={teamNames.teamA}
-          initialTeamB={teamNames.teamB}
-          onConfirm={handleTeamSetupConfirm}
-        />
-      )}
-
-      {/* Card Inspection Modal */}
-      <CardInspectModal
-        card={inspectedCard}
-        onClose={() => setInspectedCard(null)}
-      />
-
-      {/* Steal Opportunity Modal */}
-      {stealActive && (
-        <StealModal
-          data={quizData}
-          stealingTeam={activeTeam === 'teamA' ? 'teamB' : 'teamA'}
-          stealingTeamName={activeTeam === 'teamA' ? teamNames.teamB : teamNames.teamA}
-          onStealAttempt={handleStealResult}
-          onPassSteal={() => {
-            setStealActive(false);
-            switchTurn();
-          }}
-        />
-      )}
-
-      {/* Living Culture Climax Modal */}
-      {phase === 'living_culture' && (
-        <LivingCultureModal
-          onContinueToResults={() => setPhase('results')}
-        />
-      )}
-
-      {/* Results Report Card Modal */}
-      {phase === 'results' && (
-        <ResultsModal
-          teamAScore={teamAScore}
-          teamBScore={teamBScore}
-          teamAName={teamNames.teamA}
-          teamBName={teamNames.teamB}
-          discoveredRootsCount={discoveredRootsCount}
-          totalCategories={treeNodes.length}
-          skillsLog={skillsLog}
-          onProceedToReflection={() => setPhase('reflection')}
-        />
-      )}
-
-      {/* Interactive Reflection Modal */}
-      {phase === 'reflection' && (
-        <ReflectionModal
-          onFinishQuest={() => setPhase('playing')}
-          onPlayAgain={() => {
-            setTeamAScore(INITIAL_TEAM_SCORE);
-            setTeamBScore(INITIAL_TEAM_SCORE);
-            setCurrentRound(1);
-            setTreeNodes(INITIAL_TREE_NODES);
-            setHeritageCards(INITIAL_HERITAGE_CARDS);
-            questionManager.reset();
-            setPhase('team_setup');
-          }}
-        />
-      )}
-
-      {/* Teacher Control Panel Modal */}
-      <TeacherPanelModal
-        isOpen={teacherPanelOpen}
-        teamAName={teamNames.teamA}
-        teamBName={teamNames.teamB}
-        isPaused={isPaused}
-        timerEnabled={timerEnabled}
-        soundEnabled={soundEnabled}
-        onClose={() => {
-          setTeacherPanelOpen(false);
-          setIsPaused(false);
-        }}
-        onUpdateTeamNames={(a, b) => {
-          setTeamNames({ teamA: a, teamB: b });
-          saveTeamNames(a, b);
-          setTeacherPanelOpen(false);
-          setIsPaused(false);
-        }}
-        onTogglePause={() => setIsPaused((prev) => !prev)}
-        onToggleTimer={() => {
-          const next = !timerEnabled;
-          setTimerEnabled(next);
-          saveTimerPreference(next);
-        }}
-        onToggleSound={() => {
-          const next = !soundEnabled;
-          setSoundEnabled(next);
-          saveSoundPreference(next);
-        }}
-        onSkipChallenge={() => {
-          switchTurn();
-          setTeacherPanelOpen(false);
-          setIsPaused(false);
-        }}
-        onRestartRound={() => {
-          resetTimerForCategory(selectedCategory);
-          setTeacherPanelOpen(false);
-          setIsPaused(false);
-        }}
-        onResetGame={() => {
-          setTeamAScore(INITIAL_TEAM_SCORE);
-          setTeamBScore(INITIAL_TEAM_SCORE);
-          setCurrentRound(1);
-          setTreeNodes(INITIAL_TREE_NODES);
-          setHeritageCards(INITIAL_HERITAGE_CARDS);
-          questionManager.reset();
-          setPhase('team_setup');
-          setTeacherPanelOpen(false);
-          setIsPaused(false);
-        }}
-        onQuestionsReload={() => {
-          setQuizData(questionManager.getNextQuizQuestion());
+      {/* 3. Bottom Discovery Progress Bar */}
+      <DiscoveryProgressBottom
+        teamKnowledge={teamKnowledge}
+        teamHeritage={teamHeritage}
+        onZoneClick={(zoneIdx) => {
+          soundFx.playSelect();
+          setActiveHintZone(zoneIdx);
+          setTimeout(() => setActiveHintZone(null), 3000);
         }}
       />
 
-      {/* 7. SUB-BRANCH TREE ZOOM & REGIONAL DRAWER */}
-      <SubBranchExploreModal
-        node={selectedExploreNode}
-        onClose={() => setSelectedExploreNode(null)}
+      {/* Modals & Overlays */}
+      <StartScreenModal
+        isOpen={gameStatus === 'setup'}
+        onStart={handleStartQuest}
+        onOpenHowToPlay={() => {
+          soundFx.playSelect();
+          setIsHowToPlayOpen(true);
+        }}
+        onOpenTeacher={() => {
+          soundFx.playSelect();
+          setIsTeacherModalOpen(true);
+        }}
       />
 
-      <RegionalTapestryDrawer
-        isOpen={regionalDrawerOpen}
-        onClose={() => setRegionalDrawerOpen(false)}
+      {gameStatus === 'countdown' && (
+        <CountdownOverlay onComplete={handleCountdownComplete} />
+      )}
+
+      <HowToPlayModal
+        isOpen={isHowToPlayOpen}
+        onClose={() => setIsHowToPlayOpen(false)}
+      />
+
+      <KnowledgeArchiveModal
+        isOpen={archiveModalTeam !== null}
+        onClose={() => setArchiveModalTeam(null)}
+        teamName={
+          archiveModalTeam === 'teamKnowledge' ? teamKnowledge.name : teamHeritage.name
+        }
+        isBlueTeam={archiveModalTeam === 'teamKnowledge'}
+        unlockedDiscoveryIds={
+          archiveModalTeam === 'teamKnowledge'
+            ? teamKnowledge.unlockedDiscoveries
+            : teamHeritage.unlockedDiscoveries
+        }
+      />
+
+      <CulturalTreeModal
+        isOpen={isTreeModalOpen}
+        onClose={() => setIsTreeModalOpen(false)}
+        unlockedDiscoveriesTeamA={teamKnowledge.unlockedDiscoveries}
+        unlockedDiscoveriesTeamB={teamHeritage.unlockedDiscoveries}
+      />
+
+      <TeacherDashboardModal
+        isOpen={isTeacherModalOpen}
+        onClose={() => setIsTeacherModalOpen(false)}
+        questions={questionsBank}
+        onUpdateQuestions={(qs) => setQuestionsBank(qs)}
+      />
+
+      <CompletionReviewModal
+        isOpen={gameStatus === 'finished'}
+        onPlayAgain={handlePlayAgain}
+        teamKnowledge={teamKnowledge}
+        teamHeritage={teamHeritage}
+        missedQuestions={missedQuestions}
       />
     </div>
   );
